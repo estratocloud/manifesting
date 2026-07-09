@@ -19,6 +19,7 @@ build:
 
 test:
 	docker exec -ti manifesting go test ./...
+	docker exec -ti manifesting ./tests/end-to-end/run.sh
 
 coverage:
 	docker exec -ti manifesting go test ./... -coverprofile=tests/coverage.txt

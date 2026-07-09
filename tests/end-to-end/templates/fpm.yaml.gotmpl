@@ -1,0 +1,68 @@
+test: thing
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp-fpm
+  labels:
+    app: myapp-fpm
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: myapp-fpm
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0%
+      maxSurge: 100%
+  template:
+    metadata:
+      name: myapp-fpm
+      labels:
+        app: myapp-fpm
+    spec:
+      containers:
+        - name: fpm
+          image: docker.io/myapp-fpm
+          env:
+            - name: ALLOW_EXTERNAL_RESOURCES
+            - name: ATTRIBUTE_ENCRYPTION_KEY
+            - name: CACHE_SETTINGS
+            - name: DATABASE_NAME
+            - name: DATABASE_HOSTNAME
+            - name: DATABASE_USERNAME
+            - name: DATABASE_PASSWORD
+            - name: DOCUMENT_STORAGE_SETTINGS
+            - name: EMAIL_SETTINGS
+            - name: ENVIRONMENT
+            - name: LOG_LEVEL
+            - name: PHP_MEMORY_LIMIT
+              value: 980M
+            - name: QUEUE_SETTINGS
+            - name: SENTRY_DSN
+            - name: PHP_SESSION_PATH
+              valueFrom:
+                secretKeyRef:
+                  key: session_path
+                  name: myapp
+            - name: STORAGE_SETTINGS
+          resources:
+            limits:
+              memory: 1000Mi
+            requests:
+              {{- if eq .ENVIRONMENT "production"}}
+              memory: 500Mi
+              cpu: 1000m
+              {{- else}}
+              memory: "0"
+              {{- end}}
+      nodeSelector:
+        type: user
+      priorityClassName: myapp-priority-web
+      restartPolicy: Always
+      tolerations:
+        - effect: NoSchedule
+          key: environment
+          operator: Equal
+          value: production

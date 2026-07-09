@@ -1,0 +1,56 @@
+test: thing
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: task-{{.RESOURCE_NAME}}
+spec:
+  schedule: "{{.Schedule}}"
+  concurrencyPolicy: Forbid
+  suspend: false
+  jobTemplate:
+    metadata:
+      name: task-{{.RESOURCE_NAME}}
+    spec:
+      template:
+        spec:
+          containers:
+          - name: task
+            image: docker.io/myapp-cli
+            command:
+              - bin/cli.php
+              - {{.Command}}
+            env:
+              - name: ALLOW_EXTERNAL_RESOURCES
+              - name: ATTRIBUTE_ENCRYPTION_KEY
+              - name: CACHE_SETTINGS
+              - name: DATABASE_NAME
+              - name: DATABASE_HOSTNAME
+              - name: DATABASE_USERNAME
+              - name: DATABASE_PASSWORD
+              - name: DOCUMENT_STORAGE_SETTINGS
+              - name: EMAIL_SETTINGS
+              - name: ENVIRONMENT
+              - name: LOG_LEVEL
+              - name: PHP_MEMORY_LIMIT
+                value: 490M
+              - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+              - name: QUEUE_SETTINGS
+              - name: SENTRY_DSN
+              - name: STORAGE_SETTINGS
+            resources:
+              limits:
+                memory: 500Mi
+              requests:
+                memory: 500Mi
+          nodeSelector:
+            type: user
+          priorityClassName: myapp-priority-task
+          restartPolicy: Never
+          terminationGracePeriodSeconds: 30
+          tolerations:
+            - effect: NoSchedule
+              key: environment
+              operator: Equal
+              value: production
+      ttlSecondsAfterFinished: 3600

@@ -35,3 +35,6 @@ jobs:
 
       - name: Unit Tests
         run: docker exec manifesting go test ./... -v -cover
+
+      - name: End To End Test
+        run: docker exec manifesting ./tests/end-to-end/run.sh
