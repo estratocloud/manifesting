@@ -1,0 +1,25 @@
+name: coding-standards
+
+on: pull_request
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Create Docker Container
+        run: |
+          docker build . -t manifesting-image
+          docker run --interactive --detach --volume ${{ github.workspace }}:/app --name manifesting manifesting-image
+
+      - name: Format Code
+        run: docker exec manifesting goimports -w -e .
+
+      - name: Push to GitHub
+        run: ./.github/scripts/push.sh "go fmt"
