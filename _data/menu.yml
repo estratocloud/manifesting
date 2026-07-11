@@ -1,3 +1,9 @@
 Getting Started:
     Installation: /
     Layout: /setup/layout
+    Config: /setup/config
+
+Config:
+    Environments: /config/environments
+    Resources: /config/resources
+    Variables: /config/variables
