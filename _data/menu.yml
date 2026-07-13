@@ -5,3 +5,4 @@ Getting Started:
 
 Config:
     Environments: /config/environments
+    Resources: /config/resources
