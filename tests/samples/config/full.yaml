@@ -1,0 +1,25 @@
+environments:
+  - name: "production"
+    output: ".generated/production.yaml"
+    envFrom: "envvars/production.yaml"
+  - name: "nonprod"
+    output: ".generated/nonprod.yaml"
+    envFrom: "envvars/nonprod.yaml"
+
+vars:
+  Priority: "first"
+  CPU: 50
+
+resources:
+
+  - name: "awesome-daemon"
+    template: "daemon"
+    environments: ["production"]
+    vars:
+      Program: "awesome.php"
+
+  - name: "boring-daemon"
+    template: "daemon"
+    environments: ["nonprod"]
+    vars:
+      Program: "boring.py"
