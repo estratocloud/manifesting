@@ -55,3 +55,46 @@ func Test_Unmarshal1(t *testing.T) {
 		},
 	}, got)
 }
+
+// GetResources Ensure we can get all the resources
+func Test_GetResources1(t *testing.T) {
+
+	conf := &Config{
+		Resources: []*Resource{
+			{Name: "myapp"},
+			{Name: "yourapp"},
+			{Name: "theirapp"},
+		},
+	}
+
+	got := conf.GetResources(&Environment{})
+
+	assert.Equal(t, []*Resource{
+		{Name: "myapp"},
+		{Name: "yourapp"},
+		{Name: "theirapp"},
+	}, got)
+}
+
+// GetResources Ensure we can get filter the resources by environment
+func Test_GetResources2(t *testing.T) {
+
+	conf := &Config{
+		Resources: []*Resource{
+			{Name: "myapp"},
+			{Name: "yourapp", Environments: []string{"uk"}},
+			{Name: "theirapp", Environments: []string{"canada"}},
+		},
+	}
+
+	resources := conf.GetResources(&Environment{Name: "canada"})
+	var got []string
+	for _, resource := range resources {
+		got = append(got, resource.Name)
+	}
+
+	assert.Equal(t, []string{
+		"myapp",
+		"theirapp",
+	}, got)
+}
