@@ -9,8 +9,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// GetObject Ensure we can get a deployment struct
-func Test_GetObject1(t *testing.T) {
+// Unmarshal Ensure we can parse a full config file
+func Test_Unmarshal1(t *testing.T) {
 
 	var got Config
 	data, err := os.ReadFile("/app/tests/samples/config/full.yaml")
