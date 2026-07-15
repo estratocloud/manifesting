@@ -11,11 +11,11 @@ import (
 )
 
 type GeneratedFile struct {
-	path    *internal.Path
+	path    internal.PathInterface
 	content bytes.Buffer
 }
 
-func NewGeneratedFile(path *internal.Path) *GeneratedFile {
+func NewGeneratedFile(path internal.PathInterface) *GeneratedFile {
 	return &GeneratedFile{
 		path: path,
 	}
