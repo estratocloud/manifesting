@@ -11,13 +11,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func newPath(t *testing.T, path string) *internal.Path {
+func newPath(t *testing.T, path string) internal.PathInterface {
 	wd, err := internal.NewWorkingDirectory("/app")
 	require.NoError(t, err)
-	return &internal.Path{
-		Path:             path,
-		WorkingDirectory: wd,
-	}
+	return wd.NewPath(path)
 }
 
 type BadObject struct {
