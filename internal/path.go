@@ -6,42 +6,27 @@ import (
 	"path/filepath"
 )
 
-type WorkingDirectory struct {
-	path string
-}
-
-func NewWorkingDirectory(path string) (*WorkingDirectory, error) {
-
-	if !filepath.IsAbs(path) {
-		cwd, err := fs.Getwd()
-		if err != nil {
-			return nil, err
-		}
-		path = filepath.Join(cwd, path)
-	}
-
-	_, err := fs.Stat(path)
-	if err != nil {
-		return nil, err
-	}
-
-	return &WorkingDirectory{
-		path: path,
-	}, nil
+type PathInterface interface {
+	GetFullyQualifiedPath() string
+	Exists() (bool, error)
+	ExistsOrError(message string) error
+	Open() (*os.File, error)
+	ReadFile() ([]byte, error)
+	WriteFile(data []byte) error
 }
 
 type Path struct {
-	WorkingDirectory *WorkingDirectory
-	Path             string
+	wd   WorkingDirectoryInterface
+	path string
 }
 
 func (p *Path) GetFullyQualifiedPath() string {
 
-	if filepath.IsAbs(p.Path) {
-		return p.Path
+	if filepath.IsAbs(p.path) {
+		return p.path
 	}
 
-	return filepath.Join(p.WorkingDirectory.path, p.Path)
+	return filepath.Join(p.wd.GetPath(), p.path)
 }
 
 func (p *Path) Exists() (bool, error) {
