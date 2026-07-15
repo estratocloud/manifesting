@@ -1,0 +1,21 @@
+version: 2
+
+updates:
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    allow:
+      - update-types:
+        - "version-update:semver-major"
+        - "version-update:semver-minor"
+    labels: []
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    allow:
+      - update-types:
+        - "version-update:semver-major"
+    labels: []
