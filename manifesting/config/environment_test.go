@@ -145,3 +145,37 @@ func Test_GetEnvVars5(t *testing.T) {
 	assert.Nil(t, got)
 	assert.EqualError(t, err, "unable to parse the envFrom file for nonprod at '/app/tests/samples/badsyntax.yaml': error converting YAML to JSON: yaml: line 3: found unexpected end of stream")
 }
+
+// PerEnvironment Ensure we can get a value for a specific environment
+func Test_PerEnvironment1(t *testing.T) {
+
+	environment := &Environment{Name: "production"}
+
+	got := environment.PerEnvironment(map[string]any{
+		"production": 1,
+		"nonprod":    0,
+	})
+	assert.Equal(t, 1, got)
+}
+
+// PerEnvironment If a single value has been provided then just use that
+func Test_PerEnvironment2(t *testing.T) {
+
+	environment := &Environment{Name: "production"}
+
+	got := environment.PerEnvironment("same-for-all-environments")
+	assert.Equal(t, "same-for-all-environments", got)
+}
+
+// PerEnvironment If there's no value for this environment then return nil
+func Test_PerEnvironment3(t *testing.T) {
+
+	environment := &Environment{Name: "ringo"}
+
+	got := environment.PerEnvironment(map[string]any{
+		"john":   1,
+		"paul":   2,
+		"george": 3,
+	})
+	assert.Equal(t, nil, got)
+}
