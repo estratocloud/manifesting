@@ -66,3 +66,44 @@ spec:
       value: override
 `)
 }
+
+// MergeYAML Ensure we can override maps/lists with simple values
+func Test_MergeYAML3(t *testing.T) {
+	assertMerge(t, `
+map:
+    layer:
+        base: base
+        override: base
+spec:
+    - one
+    - two
+`, `
+map:
+    layer: override
+spec: override
+`, `
+map:
+    layer: override
+spec: override
+`)
+}
+
+// MergeYAML Ensure we get an error if the base isn't valid yaml
+func Test_MergeYAML4(t *testing.T) {
+	base := []byte("name: \"invalid: syntax")
+	var empty []byte
+
+	got, err := MergeYAML(base, empty)
+	assert.Equal(t, empty, got)
+	assert.EqualError(t, err, "unable to parse the base yaml: yaml: found unexpected end of stream")
+}
+
+// MergeYAML Ensure we get an error if the override isn't valid yaml
+func Test_MergeYAML5(t *testing.T) {
+	override := []byte("name: \"invalid: syntax")
+	var empty []byte
+
+	got, err := MergeYAML(empty, override)
+	assert.Equal(t, empty, got)
+	assert.EqualError(t, err, "unable to parse the template yaml: yaml: found unexpected end of stream")
+}
