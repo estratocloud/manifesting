@@ -1,0 +1,4 @@
+- name: CONFIG_KEY_1
+  value: "value1"
+- name: CONFIG_KEY_2
+  value: "value2"
