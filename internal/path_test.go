@@ -16,6 +16,13 @@ func wd(t *testing.T) WorkingDirectoryInterface {
 	return wd
 }
 
+// GetPath Ensure we can get the path that was provided on construction
+func Test_GetPath1(t *testing.T) {
+	path := wd(t).NewPath("manifesting.yaml")
+	got := path.GetPath()
+	assert.Equal(t, "manifesting.yaml", got)
+}
+
 // GetFullyQualifiedPath Ensure a relative path is prefixed with the working directory
 func Test_GetFullyQualifiedPath1(t *testing.T) {
 	path := wd(t).NewPath("manifesting.yaml")
