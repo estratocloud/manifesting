@@ -1,5 +1,5 @@
 ARG GO_VERSION=1.24
-FROM golang:${GO_VERSION}-alpine
+FROM golang:${GO_VERSION}-alpine AS dev
 
 RUN go install golang.org/x/tools/cmd/goimports@v0.24
 

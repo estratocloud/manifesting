@@ -11,7 +11,7 @@ help:
 
 up:
 	docker rm -f manifesting > /dev/null 2>&1
-	docker build . -t manifesting-image --build-arg GO_VERSION=$(go)
+	docker build . --target=dev --build-arg GO_VERSION=$(go) -t manifesting-image
 	docker run --interactive --detach --volume $(shell pwd):/app --name manifesting manifesting-image
 
 build:
