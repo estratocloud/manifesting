@@ -1,0 +1,107 @@
+vars: uppercase
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp-{{.RESOURCE_NAME}}
+  labels:
+    app: myapp-{{.RESOURCE_NAME}}
+    type: daemon
+  annotations:
+    {{- if ne .RESOURCE_NAME "scheduler"}}
+    scale-queue-name: "{{.RESOURCE_NAME}}"
+    {{- end}}
+    scale-minimum: "{{if eq .ENVIRONMENT "production" -}} {{.ScaleSettings.MinimumPods}} {{- else -}} 1 {{- end}}"
+    {{- if eq .RESOURCE_NAME "scheduler"}}
+    scale-maximum: "1"
+    {{- else if ne .ENVIRONMENT "production"}}
+    scale-maximum: "10"
+    {{- end}}
+    scale-messages-per-pod: "{{if eq .ENVIRONMENT "production" -}} {{.ScaleSettings.MessagesPerPod}} {{- else -}} 1000 {{- end}}"
+    {{- with .ScaleSettings.DatabaseRequests}}
+    scale-database-requests: "{{.}}"
+    {{- end}}
+spec:
+  replicas: {{if eq .ENVIRONMENT "production" -}} {{.ScaleSettings.MinimumPods}} {{- else -}} 1 {{- end}}
+  selector:
+    matchLabels:
+      app: myapp-{{.RESOURCE_NAME}}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 50%
+      maxSurge: 25%
+  template:
+    metadata:
+      name: myapp-{{.RESOURCE_NAME}}
+      labels:
+        app: myapp-{{.RESOURCE_NAME}}
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: "aks-cluster-identity"
+      containers:
+        - name: daemon
+          image: docker.io/myapp-cli
+          command:
+            - /app/bin/{{.Program}}.php
+          env:
+            {{- if eq .Priority "low" "medium" "high" "memory"}}
+            - name: PRIORITY_LEVEL
+              value: {{.Priority}}
+            {{- end}}
+            - name: ALLOW_EXTERNAL_RESOURCES
+            - name: ATTRIBUTE_ENCRYPTION_KEY
+            - name: CACHE_SETTINGS
+            - name: DATABASE_NAME
+            - name: DATABASE_HOSTNAME
+            - name: DATABASE_USERNAME
+            - name: DATABASE_PASSWORD
+            - name: DOCUMENT_STORAGE_SETTINGS
+            - name: EMAIL_SETTINGS
+            - name: ENVIRONMENT
+            - name: LOCK_HOSTNAME
+            - name: LOCK_USERNAME
+            - name: LOCK_PASSWORD
+            - name: LOCK_DATABASE
+            - name: LOG_LEVEL
+            - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+            - name: QUEUE_SETTINGS
+            - name: SENTRY_DSN
+            - name: SENTRY_SAMPLE_RATE
+            - name: STORAGE_SETTINGS
+            {{- if eq .ENVIRONMENT "production"}}
+            {{- with .Snitch}}
+            - name: SNITCH
+              value: "{{.}}"
+            {{- end}}
+            {{- end}}
+            - name: PHP_MEMORY_LIMIT
+              {{$limit := perEnvironment .Memory.Limit | toInt}}
+              {{$reduction := min (div $limit 10) 20}}
+              value: "{{sub $limit $reduction}}M"
+          livenessProbe:
+            exec: {command: ["/app/bin/healthy.php", "60"]}
+            failureThreshold: 1
+            initialDelaySeconds: 30
+            periodSeconds: 300
+            timeoutSeconds: 30
+          resources:
+            requests:
+              {{if eq .ENVIRONMENT "production"}}
+              memory: {{with .Memory.Request -}} {{.}}Mi {{else}} 0 {{end}}
+              cpu:  {{with .CPU}} {{.}}m {{else}} 0 {{end}}
+              {{else}}
+              memory: 0
+              {{end}}
+            limits:
+              memory: {{with .Memory.Limit}} {{perEnvironment .}}Mi {{else}} 0 {{end}}
+      nodeSelector:
+        type: user
+      priorityClassName: myapp-priority-{{.Priority}}
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 300
+      tolerations:
+        - effect: NoSchedule
+          key: environment
+          operator: Equal
+          value: production

@@ -1,0 +1,75 @@
+test: thing
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: autoscaler
+spec:
+  schedule: "*/5 * * * *"
+  suspend: false
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    metadata:
+      name: autoscaler
+    spec:
+      template:
+        spec:
+          containers:
+            - name: autoscaler
+              image: docker.io/myapp-autoscaler:1.3.0
+              command: [./autoscaler]
+              env:
+                - name: CLUSTER_CLIENT_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: servicebus
+                      key: client_id
+                - name: DATABASE_NAME
+                - name: DATABASE_HOSTNAME
+                - name: DATABASE_USERNAME
+                - name: DATABASE_PASSWORD
+                - name: ENVIRONMENT
+                - name: MAXIMUM_REQUESTS
+                  valueFrom:
+                    secretKeyRef:
+                      name: myapp
+                      key: max_db_requests
+                - name: NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: SERVICE_BUS_SUBSCRIPTION
+                  valueFrom:
+                    secretKeyRef:
+                      name: servicebus
+                      key: subscription
+                - name: SERVICE_BUS_RESOURCE_GROUP
+                  valueFrom:
+                    secretKeyRef:
+                      name: servicebus
+                      key: resourcegroup
+                - name: SERVICE_BUS_NAMESPACE
+                  valueFrom:
+                    secretKeyRef:
+                      name: servicebus
+                      key: namespace
+                {{- if eq .ENVIRONMENT "production"}}
+                - name: SNITCH
+                  value: xc6ff02d0e
+                {{- end}}
+              resources:
+                limits:
+                  memory: 500Mi
+                requests:
+                  memory: 50Mi
+          nodeSelector:
+            type: user
+          priorityClassName: myapp-priority-autoscaler
+          restartPolicy: Never
+          terminationGracePeriodSeconds: 1
+          tolerations:
+            - effect: NoSchedule
+              key: environment
+              operator: Equal
+              value: production
+      ttlSecondsAfterFinished: 600

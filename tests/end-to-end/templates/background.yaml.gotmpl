@@ -1,0 +1,14 @@
+extends: daemon
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    scale-minimum: "{{if eq .ENVIRONMENT "production" -}} {{.ScaleSettings.MinimumPods}} {{- else -}} 0 {{- end}}"
+    scale-maximum: "{{if eq .ENVIRONMENT "production" -}} 100 {{- else -}} 1 {{- end}}"
+    scale-messages-per-pod: "{{if eq .ENVIRONMENT "production" -}} {{.ScaleSettings.MessagesPerPod}} {{- else -}} 1 {{- end}}"
+spec:
+  replicas: {{if eq .ENVIRONMENT "production" -}} {{.ScaleSettings.MinimumPods}} {{- else -}} 0 {{- end}}
+  template:
+    spec:
+      terminationGracePeriodSeconds: 30

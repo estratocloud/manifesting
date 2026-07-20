@@ -1,0 +1,97 @@
+- name: ALLOW_EXTERNAL_RESOURCES
+  value: "true"
+- name: ATTRIBUTE_ENCRYPTION_KEY
+  valueFrom:
+    secretKeyRef:
+      name: myapp
+      key: attributes
+- name: CACHE_SETTINGS
+  valueFrom:
+    secretKeyRef:
+      name: azure
+      key: cache
+- name: DATABASE_NAME
+  valueFrom:
+    secretKeyRef:
+      name: database
+      key: name
+- name: DATABASE_HOSTNAME
+  valueFrom:
+    secretKeyRef:
+      name: database
+      key: host
+- name: DATABASE_USERNAME
+  valueFrom:
+    secretKeyRef:
+      name: database
+      key: username
+- name: DATABASE_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: database
+      key: password
+- name: DOCUMENT_STORAGE_SETTINGS
+  valueFrom:
+    secretKeyRef:
+      name: documentstore
+      key: storage
+- name: EMAIL_SETTINGS
+  valueFrom:
+    secretKeyRef:
+      name: myapp
+      key: email
+- name: ENVIRONMENT
+  valueFrom:
+    secretKeyRef:
+      name: myapp
+      key: environment
+- name: LOCK_HOSTNAME
+  valueFrom:
+    secretKeyRef:
+      name: locks
+      key: hostname
+- name: LOCK_USERNAME
+  valueFrom:
+    secretKeyRef:
+      name: locks
+      key: username
+- name: LOCK_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: locks
+      key: password
+- name: LOCK_DATABASE
+  valueFrom:
+    secretKeyRef:
+      name: locks
+      key: database
+- name: LOG_LEVEL
+  valueFrom:
+    secretKeyRef:
+      name: myapp
+      key: log_level
+- name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+  valueFrom:
+    secretKeyRef:
+      name: myapp
+      key: productimagestore
+- name: QUEUE_SETTINGS
+  valueFrom:
+    secretKeyRef:
+      name: azure
+      key: queue
+- name: SENTRY_DSN
+  valueFrom:
+    secretKeyRef:
+      name: sentry
+      key: dsn
+- name: SENTRY_SAMPLE_RATE
+  valueFrom:
+    secretKeyRef:
+      name: sentry
+      key: profiling
+- name: STORAGE_SETTINGS
+  valueFrom:
+    secretKeyRef:
+      name: azure
+      key: storage

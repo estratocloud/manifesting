@@ -1,0 +1,412 @@
+environments:
+  - name: "production"
+    output: ".generated/production.yaml"
+    envFrom: "templates/envvars.yaml"
+  - name: "nonprod"
+    output: ".generated/nonprod.yaml"
+    envFrom: "templates/envvars.yaml"
+
+vars:
+  Priority: "core"
+  CPU: 50
+
+resources:
+
+  - name: "scheduler"
+    template: "daemon"
+    vars:
+      Program: "scheduler"
+      Priority: "scheduler"
+      CPU: 500
+      Memory: { Request: 50, Limit: 500 }
+      Snitch: "x434d80248"
+      ScaleSettings:
+        MinimumPods: 1
+        MessagesPerPod: 1000
+
+  - name: "generic"
+    template: "daemon"
+    vars:
+      Program: "generic"
+      Snitch: "xdb7c333f0"
+      Memory: { Request: 50, Limit: 500 }
+      ScaleSettings:
+        MinimumPods: 5
+        MessagesPerPod: 1000
+
+  - name: "low-inbound"
+    template: "daemon"
+    vars:
+      Program: "inbound"
+      Priority: "low"
+      Snitch: "xxx88d4402"
+      CPU: 400
+      Memory: { Request: 1000, Limit: 1000 }
+      ScaleSettings:
+        MinimumPods: 10
+        MessagesPerPod: 10
+
+  - name: "medium-inbound"
+    template: "daemon"
+    vars:
+      Program: "inbound"
+      Priority: "medium"
+      Snitch: "xxx89a7c02"
+      CPU: 400
+      Memory: { Request: 1000, Limit: 1000 }
+      ScaleSettings:
+        MinimumPods: 10
+        MessagesPerPod: 10
+
+  - name: "high-inbound"
+    template: "daemon"
+    vars:
+      Program: "inbound"
+      Priority: "high"
+      Snitch: "xxxa4b8a83"
+      CPU: 400
+      Memory: { Request: 1000, Limit: 1000 }
+      ScaleSettings:
+        MinimumPods: 10
+        MessagesPerPod: 1
+
+  - name: "memory-inbound"
+    template: "daemon"
+    vars:
+      Program: "inbound"
+      Priority: "memory"
+      Snitch: "xxx666e76c"
+      CPU: 400
+      Memory: { Request: 5000, Limit: { production: 5000, nonprod: 1000 } }
+      ScaleSettings:
+        MinimumPods: 1
+        MessagesPerPod: 10
+
+  - name: "low-parser"
+    template: "daemon"
+    vars:
+      Program: "parser"
+      Priority: "low"
+      Snitch: "xxx2674260"
+      CPU: 300
+      Memory: { Request: 50, Limit: 500 }
+      ScaleSettings:
+        MinimumPods: 50
+        MessagesPerPod: 10
+
+  - name: "medium-parser"
+    template: "daemon"
+    vars:
+      Program: "parser"
+      Priority: "medium"
+      Snitch: "xxx3a48574"
+      CPU: 300
+      Memory: { Request: 50, Limit: 500 }
+      ScaleSettings:
+        MinimumPods: 50
+        MessagesPerPod: 10
+
+  - name: "high-parser"
+    template: "daemon"
+    vars:
+      Program: "parser"
+      Priority: "high"
+      Snitch: "xxxb9c3871"
+      CPU: 300
+      Memory: { Request: 50, Limit: 500 }
+      ScaleSettings:
+        MinimumPods: 10
+        MessagesPerPod: 100
+
+  - name: "memory-parser"
+    template: "daemon"
+    vars:
+      Program: "parser"
+      Priority: "memory"
+      Snitch: "xxx6f386c4"
+      CPU: 300
+      Memory: { Request: 50, Limit: 500 }
+      ScaleSettings:
+        MinimumPods: 1
+        MessagesPerPod: 10
+
+  - name: "low-validator"
+    template: "daemon"
+    vars:
+      Program: "validator"
+      Priority: "low"
+      Snitch: "xxx6be36e8"
+      Memory: { Request: 50, Limit: 500 }
+      ScaleSettings:
+        MinimumPods: 100
+        MessagesPerPod: 50
+
+  - name: "medium-validator"
+    template: "daemon"
+    vars:
+      Program: "validator"
+      Priority: "medium"
+      Snitch: "xxx722df88"
+      Memory: { Request: 50, Limit: 500 }
+      ScaleSettings:
+        MinimumPods: 100
+        MessagesPerPod: 50
+
+  - name: "high-validator"
+    template: "daemon"
+    vars:
+      Program: "validator"
+      Priority: "high"
+      Snitch: "xxx19b07be"
+      Memory: { Request: 50, Limit: 500 }
+      ScaleSettings:
+        MinimumPods: 10
+        MessagesPerPod: 50
+
+  - name: "memory-validator"
+    template: "daemon"
+    vars:
+      Program: "validator"
+      Priority: "memory"
+      Snitch: "xxxda003ae"
+      Memory: { Request: 50, Limit: 500 }
+      ScaleSettings:
+        MinimumPods: 1
+        MessagesPerPod: 100
+
+  - name: "low-storage"
+    template: "daemon"
+    vars:
+      Program: "storage"
+      Priority: "low"
+      Snitch: "xxxddd9e6a"
+      CPU: 200
+      Memory: { Request: 50, Limit: 500 }
+      ScaleSettings:
+        MinimumPods: 50
+        MessagesPerPod: 100
+
+  - name: "medium-storage"
+    template: "daemon"
+    vars:
+      Program: "storage"
+      Priority: "medium"
+      Snitch: "xxx73d067c"
+      CPU: 200
+      Memory: { Request: 50, Limit: 500 }
+      ScaleSettings:
+        MinimumPods: 50
+        MessagesPerPod: 100
+
+  - name: "high-storage"
+    template: "daemon"
+    vars:
+      Program: "storage"
+      Priority: "high"
+      Snitch: "xxx59939ee"
+      CPU: 200
+      Memory: { Request: 50, Limit: 500 }
+      ScaleSettings:
+        MinimumPods: 10
+        MessagesPerPod: 100
+
+  - name: "memory-storage"
+    template: "daemon"
+    vars:
+      Program: "storage"
+      Priority: "memory"
+      Snitch: "xxx063aea4"
+      CPU: 200
+      Memory: { Request: 50, Limit: 500 }
+      ScaleSettings:
+        MinimumPods: 1
+        MessagesPerPod: 100
+
+  - name: "low-serializer"
+    template: "daemon"
+    vars:
+      Program: "serializer"
+      Priority: "low"
+      Snitch: "xxxe29bf60"
+      CPU: 1000
+      Memory: { Request: 1000, Limit: 1000 }
+      ScaleSettings:
+        MinimumPods: 10
+        MessagesPerPod: 10
+        DatabaseRequests: 8
+
+  - name: "medium-serializer"
+    template: "daemon"
+    vars:
+      Program: "serializer"
+      Priority: "medium"
+      Snitch: "xxx516c08b"
+      CPU: 1000
+      Memory: { Request: 1000, Limit: 1000 }
+      ScaleSettings:
+        MinimumPods: 10
+        MessagesPerPod: 10
+        DatabaseRequests: 8
+
+  - name: "high-serializer"
+    template: "daemon"
+    vars:
+      Program: "serializer"
+      Priority: "high"
+      Snitch: "xxxa3b2e51"
+      CPU: 1000
+      Memory: { Request: 1000, Limit: 1000 }
+      ScaleSettings:
+        MinimumPods: 5
+        MessagesPerPod: 10
+        DatabaseRequests: 8
+
+  - name: "memory-serializer"
+    template: "daemon"
+    vars:
+      Program: "serializer"
+      Priority: "memory"
+      Snitch: "xxx1768732"
+      CPU: 1000
+      Memory: { Request: 5000, Limit: { production: 5000, nonprod: 1000 } }
+      ScaleSettings:
+        MinimumPods: 1
+        MessagesPerPod: 10
+        DatabaseRequests: 8
+
+  - name: "low-outbound"
+    template: "daemon"
+    vars:
+      Program: "outbound"
+      Priority: "low"
+      Snitch: "xxx48e78eb"
+      Memory: { Request: 500, Limit: 500 }
+      ScaleSettings:
+        MinimumPods: 50
+        MessagesPerPod: 10
+
+  - name: "medium-outbound"
+    template: "daemon"
+    vars:
+      Program: "outbound"
+      Priority: "medium"
+      Snitch: "xxx46fd6cd"
+      Memory: { Request: 500, Limit: 500 }
+      ScaleSettings:
+        MinimumPods: 50
+        MessagesPerPod: 10
+
+  - name: "high-outbound"
+    template: "daemon"
+    vars:
+      Program: "outbound"
+      Priority: "high"
+      Snitch: "xxx808f3b0"
+      Memory: { Request: 500, Limit: 500 }
+      ScaleSettings:
+        MinimumPods: 10
+        MessagesPerPod: 100
+
+  - name: "memory-outbound"
+    template: "daemon"
+    vars:
+      Program: "outbound"
+      Priority: "memory"
+      Snitch: "xxx8141fec"
+      Memory: { Request: 1000, Limit: 1000 }
+      ScaleSettings:
+        MinimumPods: 1
+        MessagesPerPod: 10
+
+  - name: "cleanup-integrations"
+    template: "background"
+    vars:
+      Program: "cleanup-integrations"
+      Snitch: "xxx3336570"
+      Memory: { Request: 50, Limit: 500 }
+      ScaleSettings:
+        MinimumPods: 5
+        MessagesPerPod: 1
+        DatabaseRequests: 8
+
+  - name: "dismiss-duplicate-messages"
+    template: "background"
+    vars:
+      Program: "dismiss-duplicate-messages"
+      Snitch: "xxx2697c50"
+      CPU: 200
+      Memory: { Request: 50, Limit: 50 }
+      ScaleSettings:
+        MinimumPods: 1
+        MessagesPerPod: 1000
+        DatabaseRequests: 8
+
+  - name: "web"
+    template: "web"
+
+  - name: "fpm"
+    template: "fpm"
+
+  - name: "autoscaler"
+    template: "autoscaler"
+
+  - name: "cleanup-invoices"
+    template: "task"
+    vars:
+      Command: "data-structures:cleanup-invoices"
+      Schedule: "0 3 * * *"
+
+  - name: "delayed-integrations"
+    template: "task"
+    vars:
+      Command: "integrations:utilities:delayed-integration-alert"
+      Schedule: "*/5 * * * *"
+
+  - name: "dismiss-old-messages"
+    template: "task"
+    vars:
+      Command: "file-station:dismiss-old-messages"
+      Schedule: "0 1 * * *"
+
+  - name: "generate-image-urls"
+    template: "task"
+    vars:
+      Command: "products:generate-image-urls"
+      Schedule: "0 0 * * *"
+
+  - name: "redact-data"
+    template: "task"
+    vars:
+      Command: "data-structures:redact-data"
+      Schedule: "30 0 * * *"
+
+  - name: "remote-health-check"
+    template: "task"
+    vars:
+      Command: "integrations:utilities:remote-health-check"
+      Schedule: "*/5 * * * *"
+
+  - name: "send-notifications"
+    template: "task"
+    vars:
+      Command: "file-station:send-notifications"
+      Schedule: "40 * * * *"
+
+  - name: "send-stuck-emails"
+    template: "task"
+    vars:
+      Command: "file-station:send-stuck-emails"
+      Schedule: "0 8-18 * * 1-5"
+
+  - name: "send-summary-emails"
+    template: "task"
+    vars:
+      Command: "file-station:send-summary-emails"
+      Schedule: "0 8 * * *"
+
+  - name: "auto-shutdown"
+    template: "task"
+    environments: [ "nonprod" ]
+    vars:
+      Command: "system:stop"
+      Schedule: "0 19 * * *"

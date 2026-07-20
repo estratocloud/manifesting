@@ -1,0 +1,5896 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    scale-maximum: "1"
+    scale-messages-per-pod: "1000"
+    scale-minimum: "1"
+  labels:
+    app: myapp-scheduler
+    type: daemon
+  name: myapp-scheduler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myapp-scheduler
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 50%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: myapp-scheduler
+        azure.workload.identity/use: "true"
+      name: myapp-scheduler
+    spec:
+      containers:
+      - command:
+        - /app/bin/scheduler.php
+        env:
+        - name: ALLOW_EXTERNAL_RESOURCES
+          value: "true"
+        - name: ATTRIBUTE_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              key: attributes
+              name: myapp
+        - name: CACHE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: cache
+              name: azure
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: name
+              name: database
+        - name: DATABASE_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: host
+              name: database
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: database
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: database
+        - name: DOCUMENT_STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: documentstore
+        - name: EMAIL_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: email
+              name: myapp
+        - name: ENVIRONMENT
+          valueFrom:
+            secretKeyRef:
+              key: environment
+              name: myapp
+        - name: LOCK_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: hostname
+              name: locks
+        - name: LOCK_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: locks
+        - name: LOCK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: locks
+        - name: LOCK_DATABASE
+          valueFrom:
+            secretKeyRef:
+              key: database
+              name: locks
+        - name: LOG_LEVEL
+          valueFrom:
+            secretKeyRef:
+              key: log_level
+              name: myapp
+        - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: productimagestore
+              name: myapp
+        - name: QUEUE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: queue
+              name: azure
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              key: dsn
+              name: sentry
+        - name: SENTRY_SAMPLE_RATE
+          valueFrom:
+            secretKeyRef:
+              key: profiling
+              name: sentry
+        - name: STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: azure
+        - name: SNITCH
+          value: x434d80248
+        - name: PHP_MEMORY_LIMIT
+          value: 480M
+        image: docker.io/myapp-cli
+        livenessProbe:
+          exec:
+            command:
+            - /app/bin/healthy.php
+            - "60"
+          failureThreshold: 1
+          initialDelaySeconds: 30
+          periodSeconds: 300
+          timeoutSeconds: 30
+        name: daemon
+        resources:
+          limits:
+            memory: 500Mi
+          requests:
+            cpu: 500m
+            memory: 50Mi
+      nodeSelector:
+        type: user
+      priorityClassName: myapp-priority-scheduler
+      restartPolicy: Always
+      serviceAccountName: aks-cluster-identity
+      terminationGracePeriodSeconds: 300
+      tolerations:
+      - effect: NoSchedule
+        key: environment
+        operator: Equal
+        value: production
+status: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    scale-messages-per-pod: "1000"
+    scale-minimum: "5"
+    scale-queue-name: generic
+  labels:
+    app: myapp-generic
+    type: daemon
+  name: myapp-generic
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: myapp-generic
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 50%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: myapp-generic
+        azure.workload.identity/use: "true"
+      name: myapp-generic
+    spec:
+      containers:
+      - command:
+        - /app/bin/generic.php
+        env:
+        - name: ALLOW_EXTERNAL_RESOURCES
+          value: "true"
+        - name: ATTRIBUTE_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              key: attributes
+              name: myapp
+        - name: CACHE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: cache
+              name: azure
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: name
+              name: database
+        - name: DATABASE_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: host
+              name: database
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: database
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: database
+        - name: DOCUMENT_STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: documentstore
+        - name: EMAIL_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: email
+              name: myapp
+        - name: ENVIRONMENT
+          valueFrom:
+            secretKeyRef:
+              key: environment
+              name: myapp
+        - name: LOCK_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: hostname
+              name: locks
+        - name: LOCK_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: locks
+        - name: LOCK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: locks
+        - name: LOCK_DATABASE
+          valueFrom:
+            secretKeyRef:
+              key: database
+              name: locks
+        - name: LOG_LEVEL
+          valueFrom:
+            secretKeyRef:
+              key: log_level
+              name: myapp
+        - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: productimagestore
+              name: myapp
+        - name: QUEUE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: queue
+              name: azure
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              key: dsn
+              name: sentry
+        - name: SENTRY_SAMPLE_RATE
+          valueFrom:
+            secretKeyRef:
+              key: profiling
+              name: sentry
+        - name: STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: azure
+        - name: SNITCH
+          value: xdb7c333f0
+        - name: PHP_MEMORY_LIMIT
+          value: 480M
+        image: docker.io/myapp-cli
+        livenessProbe:
+          exec:
+            command:
+            - /app/bin/healthy.php
+            - "60"
+          failureThreshold: 1
+          initialDelaySeconds: 30
+          periodSeconds: 300
+          timeoutSeconds: 30
+        name: daemon
+        resources:
+          limits:
+            memory: 500Mi
+          requests:
+            cpu: 50m
+            memory: 50Mi
+      nodeSelector:
+        type: user
+      priorityClassName: myapp-priority-core
+      restartPolicy: Always
+      serviceAccountName: aks-cluster-identity
+      terminationGracePeriodSeconds: 300
+      tolerations:
+      - effect: NoSchedule
+        key: environment
+        operator: Equal
+        value: production
+status: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    scale-messages-per-pod: "10"
+    scale-minimum: "10"
+    scale-queue-name: low-inbound
+  labels:
+    app: myapp-low-inbound
+    type: daemon
+  name: myapp-low-inbound
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: myapp-low-inbound
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 50%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: myapp-low-inbound
+        azure.workload.identity/use: "true"
+      name: myapp-low-inbound
+    spec:
+      containers:
+      - command:
+        - /app/bin/inbound.php
+        env:
+        - name: PRIORITY_LEVEL
+          value: low
+        - name: ALLOW_EXTERNAL_RESOURCES
+          value: "true"
+        - name: ATTRIBUTE_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              key: attributes
+              name: myapp
+        - name: CACHE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: cache
+              name: azure
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: name
+              name: database
+        - name: DATABASE_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: host
+              name: database
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: database
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: database
+        - name: DOCUMENT_STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: documentstore
+        - name: EMAIL_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: email
+              name: myapp
+        - name: ENVIRONMENT
+          valueFrom:
+            secretKeyRef:
+              key: environment
+              name: myapp
+        - name: LOCK_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: hostname
+              name: locks
+        - name: LOCK_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: locks
+        - name: LOCK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: locks
+        - name: LOCK_DATABASE
+          valueFrom:
+            secretKeyRef:
+              key: database
+              name: locks
+        - name: LOG_LEVEL
+          valueFrom:
+            secretKeyRef:
+              key: log_level
+              name: myapp
+        - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: productimagestore
+              name: myapp
+        - name: QUEUE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: queue
+              name: azure
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              key: dsn
+              name: sentry
+        - name: SENTRY_SAMPLE_RATE
+          valueFrom:
+            secretKeyRef:
+              key: profiling
+              name: sentry
+        - name: STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: azure
+        - name: SNITCH
+          value: xxx88d4402
+        - name: PHP_MEMORY_LIMIT
+          value: 980M
+        image: docker.io/myapp-cli
+        livenessProbe:
+          exec:
+            command:
+            - /app/bin/healthy.php
+            - "60"
+          failureThreshold: 1
+          initialDelaySeconds: 30
+          periodSeconds: 300
+          timeoutSeconds: 30
+        name: daemon
+        resources:
+          limits:
+            memory: 1000Mi
+          requests:
+            cpu: 400m
+            memory: 1000Mi
+      nodeSelector:
+        type: user
+      priorityClassName: myapp-priority-low
+      restartPolicy: Always
+      serviceAccountName: aks-cluster-identity
+      terminationGracePeriodSeconds: 300
+      tolerations:
+      - effect: NoSchedule
+        key: environment
+        operator: Equal
+        value: production
+status: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    scale-messages-per-pod: "10"
+    scale-minimum: "10"
+    scale-queue-name: medium-inbound
+  labels:
+    app: myapp-medium-inbound
+    type: daemon
+  name: myapp-medium-inbound
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: myapp-medium-inbound
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 50%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: myapp-medium-inbound
+        azure.workload.identity/use: "true"
+      name: myapp-medium-inbound
+    spec:
+      containers:
+      - command:
+        - /app/bin/inbound.php
+        env:
+        - name: PRIORITY_LEVEL
+          value: medium
+        - name: ALLOW_EXTERNAL_RESOURCES
+          value: "true"
+        - name: ATTRIBUTE_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              key: attributes
+              name: myapp
+        - name: CACHE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: cache
+              name: azure
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: name
+              name: database
+        - name: DATABASE_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: host
+              name: database
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: database
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: database
+        - name: DOCUMENT_STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: documentstore
+        - name: EMAIL_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: email
+              name: myapp
+        - name: ENVIRONMENT
+          valueFrom:
+            secretKeyRef:
+              key: environment
+              name: myapp
+        - name: LOCK_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: hostname
+              name: locks
+        - name: LOCK_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: locks
+        - name: LOCK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: locks
+        - name: LOCK_DATABASE
+          valueFrom:
+            secretKeyRef:
+              key: database
+              name: locks
+        - name: LOG_LEVEL
+          valueFrom:
+            secretKeyRef:
+              key: log_level
+              name: myapp
+        - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: productimagestore
+              name: myapp
+        - name: QUEUE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: queue
+              name: azure
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              key: dsn
+              name: sentry
+        - name: SENTRY_SAMPLE_RATE
+          valueFrom:
+            secretKeyRef:
+              key: profiling
+              name: sentry
+        - name: STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: azure
+        - name: SNITCH
+          value: xxx89a7c02
+        - name: PHP_MEMORY_LIMIT
+          value: 980M
+        image: docker.io/myapp-cli
+        livenessProbe:
+          exec:
+            command:
+            - /app/bin/healthy.php
+            - "60"
+          failureThreshold: 1
+          initialDelaySeconds: 30
+          periodSeconds: 300
+          timeoutSeconds: 30
+        name: daemon
+        resources:
+          limits:
+            memory: 1000Mi
+          requests:
+            cpu: 400m
+            memory: 1000Mi
+      nodeSelector:
+        type: user
+      priorityClassName: myapp-priority-medium
+      restartPolicy: Always
+      serviceAccountName: aks-cluster-identity
+      terminationGracePeriodSeconds: 300
+      tolerations:
+      - effect: NoSchedule
+        key: environment
+        operator: Equal
+        value: production
+status: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    scale-messages-per-pod: "1"
+    scale-minimum: "10"
+    scale-queue-name: high-inbound
+  labels:
+    app: myapp-high-inbound
+    type: daemon
+  name: myapp-high-inbound
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: myapp-high-inbound
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 50%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: myapp-high-inbound
+        azure.workload.identity/use: "true"
+      name: myapp-high-inbound
+    spec:
+      containers:
+      - command:
+        - /app/bin/inbound.php
+        env:
+        - name: PRIORITY_LEVEL
+          value: high
+        - name: ALLOW_EXTERNAL_RESOURCES
+          value: "true"
+        - name: ATTRIBUTE_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              key: attributes
+              name: myapp
+        - name: CACHE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: cache
+              name: azure
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: name
+              name: database
+        - name: DATABASE_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: host
+              name: database
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: database
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: database
+        - name: DOCUMENT_STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: documentstore
+        - name: EMAIL_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: email
+              name: myapp
+        - name: ENVIRONMENT
+          valueFrom:
+            secretKeyRef:
+              key: environment
+              name: myapp
+        - name: LOCK_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: hostname
+              name: locks
+        - name: LOCK_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: locks
+        - name: LOCK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: locks
+        - name: LOCK_DATABASE
+          valueFrom:
+            secretKeyRef:
+              key: database
+              name: locks
+        - name: LOG_LEVEL
+          valueFrom:
+            secretKeyRef:
+              key: log_level
+              name: myapp
+        - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: productimagestore
+              name: myapp
+        - name: QUEUE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: queue
+              name: azure
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              key: dsn
+              name: sentry
+        - name: SENTRY_SAMPLE_RATE
+          valueFrom:
+            secretKeyRef:
+              key: profiling
+              name: sentry
+        - name: STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: azure
+        - name: SNITCH
+          value: xxxa4b8a83
+        - name: PHP_MEMORY_LIMIT
+          value: 980M
+        image: docker.io/myapp-cli
+        livenessProbe:
+          exec:
+            command:
+            - /app/bin/healthy.php
+            - "60"
+          failureThreshold: 1
+          initialDelaySeconds: 30
+          periodSeconds: 300
+          timeoutSeconds: 30
+        name: daemon
+        resources:
+          limits:
+            memory: 1000Mi
+          requests:
+            cpu: 400m
+            memory: 1000Mi
+      nodeSelector:
+        type: user
+      priorityClassName: myapp-priority-high
+      restartPolicy: Always
+      serviceAccountName: aks-cluster-identity
+      terminationGracePeriodSeconds: 300
+      tolerations:
+      - effect: NoSchedule
+        key: environment
+        operator: Equal
+        value: production
+status: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    scale-messages-per-pod: "10"
+    scale-minimum: "1"
+    scale-queue-name: memory-inbound
+  labels:
+    app: myapp-memory-inbound
+    type: daemon
+  name: myapp-memory-inbound
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myapp-memory-inbound
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 50%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: myapp-memory-inbound
+        azure.workload.identity/use: "true"
+      name: myapp-memory-inbound
+    spec:
+      containers:
+      - command:
+        - /app/bin/inbound.php
+        env:
+        - name: PRIORITY_LEVEL
+          value: memory
+        - name: ALLOW_EXTERNAL_RESOURCES
+          value: "true"
+        - name: ATTRIBUTE_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              key: attributes
+              name: myapp
+        - name: CACHE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: cache
+              name: azure
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: name
+              name: database
+        - name: DATABASE_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: host
+              name: database
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: database
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: database
+        - name: DOCUMENT_STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: documentstore
+        - name: EMAIL_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: email
+              name: myapp
+        - name: ENVIRONMENT
+          valueFrom:
+            secretKeyRef:
+              key: environment
+              name: myapp
+        - name: LOCK_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: hostname
+              name: locks
+        - name: LOCK_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: locks
+        - name: LOCK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: locks
+        - name: LOCK_DATABASE
+          valueFrom:
+            secretKeyRef:
+              key: database
+              name: locks
+        - name: LOG_LEVEL
+          valueFrom:
+            secretKeyRef:
+              key: log_level
+              name: myapp
+        - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: productimagestore
+              name: myapp
+        - name: QUEUE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: queue
+              name: azure
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              key: dsn
+              name: sentry
+        - name: SENTRY_SAMPLE_RATE
+          valueFrom:
+            secretKeyRef:
+              key: profiling
+              name: sentry
+        - name: STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: azure
+        - name: SNITCH
+          value: xxx666e76c
+        - name: PHP_MEMORY_LIMIT
+          value: 4980M
+        image: docker.io/myapp-cli
+        livenessProbe:
+          exec:
+            command:
+            - /app/bin/healthy.php
+            - "60"
+          failureThreshold: 1
+          initialDelaySeconds: 30
+          periodSeconds: 300
+          timeoutSeconds: 30
+        name: daemon
+        resources:
+          limits:
+            memory: 5000Mi
+          requests:
+            cpu: 400m
+            memory: 5000Mi
+      nodeSelector:
+        type: user
+      priorityClassName: myapp-priority-memory
+      restartPolicy: Always
+      serviceAccountName: aks-cluster-identity
+      terminationGracePeriodSeconds: 300
+      tolerations:
+      - effect: NoSchedule
+        key: environment
+        operator: Equal
+        value: production
+status: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    scale-messages-per-pod: "10"
+    scale-minimum: "50"
+    scale-queue-name: low-parser
+  labels:
+    app: myapp-low-parser
+    type: daemon
+  name: myapp-low-parser
+spec:
+  replicas: 50
+  selector:
+    matchLabels:
+      app: myapp-low-parser
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 50%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: myapp-low-parser
+        azure.workload.identity/use: "true"
+      name: myapp-low-parser
+    spec:
+      containers:
+      - command:
+        - /app/bin/parser.php
+        env:
+        - name: PRIORITY_LEVEL
+          value: low
+        - name: ALLOW_EXTERNAL_RESOURCES
+          value: "true"
+        - name: ATTRIBUTE_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              key: attributes
+              name: myapp
+        - name: CACHE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: cache
+              name: azure
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: name
+              name: database
+        - name: DATABASE_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: host
+              name: database
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: database
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: database
+        - name: DOCUMENT_STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: documentstore
+        - name: EMAIL_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: email
+              name: myapp
+        - name: ENVIRONMENT
+          valueFrom:
+            secretKeyRef:
+              key: environment
+              name: myapp
+        - name: LOCK_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: hostname
+              name: locks
+        - name: LOCK_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: locks
+        - name: LOCK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: locks
+        - name: LOCK_DATABASE
+          valueFrom:
+            secretKeyRef:
+              key: database
+              name: locks
+        - name: LOG_LEVEL
+          valueFrom:
+            secretKeyRef:
+              key: log_level
+              name: myapp
+        - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: productimagestore
+              name: myapp
+        - name: QUEUE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: queue
+              name: azure
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              key: dsn
+              name: sentry
+        - name: SENTRY_SAMPLE_RATE
+          valueFrom:
+            secretKeyRef:
+              key: profiling
+              name: sentry
+        - name: STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: azure
+        - name: SNITCH
+          value: xxx2674260
+        - name: PHP_MEMORY_LIMIT
+          value: 480M
+        image: docker.io/myapp-cli
+        livenessProbe:
+          exec:
+            command:
+            - /app/bin/healthy.php
+            - "60"
+          failureThreshold: 1
+          initialDelaySeconds: 30
+          periodSeconds: 300
+          timeoutSeconds: 30
+        name: daemon
+        resources:
+          limits:
+            memory: 500Mi
+          requests:
+            cpu: 300m
+            memory: 50Mi
+      nodeSelector:
+        type: user
+      priorityClassName: myapp-priority-low
+      restartPolicy: Always
+      serviceAccountName: aks-cluster-identity
+      terminationGracePeriodSeconds: 300
+      tolerations:
+      - effect: NoSchedule
+        key: environment
+        operator: Equal
+        value: production
+status: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    scale-messages-per-pod: "10"
+    scale-minimum: "50"
+    scale-queue-name: medium-parser
+  labels:
+    app: myapp-medium-parser
+    type: daemon
+  name: myapp-medium-parser
+spec:
+  replicas: 50
+  selector:
+    matchLabels:
+      app: myapp-medium-parser
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 50%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: myapp-medium-parser
+        azure.workload.identity/use: "true"
+      name: myapp-medium-parser
+    spec:
+      containers:
+      - command:
+        - /app/bin/parser.php
+        env:
+        - name: PRIORITY_LEVEL
+          value: medium
+        - name: ALLOW_EXTERNAL_RESOURCES
+          value: "true"
+        - name: ATTRIBUTE_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              key: attributes
+              name: myapp
+        - name: CACHE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: cache
+              name: azure
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: name
+              name: database
+        - name: DATABASE_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: host
+              name: database
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: database
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: database
+        - name: DOCUMENT_STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: documentstore
+        - name: EMAIL_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: email
+              name: myapp
+        - name: ENVIRONMENT
+          valueFrom:
+            secretKeyRef:
+              key: environment
+              name: myapp
+        - name: LOCK_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: hostname
+              name: locks
+        - name: LOCK_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: locks
+        - name: LOCK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: locks
+        - name: LOCK_DATABASE
+          valueFrom:
+            secretKeyRef:
+              key: database
+              name: locks
+        - name: LOG_LEVEL
+          valueFrom:
+            secretKeyRef:
+              key: log_level
+              name: myapp
+        - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: productimagestore
+              name: myapp
+        - name: QUEUE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: queue
+              name: azure
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              key: dsn
+              name: sentry
+        - name: SENTRY_SAMPLE_RATE
+          valueFrom:
+            secretKeyRef:
+              key: profiling
+              name: sentry
+        - name: STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: azure
+        - name: SNITCH
+          value: xxx3a48574
+        - name: PHP_MEMORY_LIMIT
+          value: 480M
+        image: docker.io/myapp-cli
+        livenessProbe:
+          exec:
+            command:
+            - /app/bin/healthy.php
+            - "60"
+          failureThreshold: 1
+          initialDelaySeconds: 30
+          periodSeconds: 300
+          timeoutSeconds: 30
+        name: daemon
+        resources:
+          limits:
+            memory: 500Mi
+          requests:
+            cpu: 300m
+            memory: 50Mi
+      nodeSelector:
+        type: user
+      priorityClassName: myapp-priority-medium
+      restartPolicy: Always
+      serviceAccountName: aks-cluster-identity
+      terminationGracePeriodSeconds: 300
+      tolerations:
+      - effect: NoSchedule
+        key: environment
+        operator: Equal
+        value: production
+status: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    scale-messages-per-pod: "100"
+    scale-minimum: "10"
+    scale-queue-name: high-parser
+  labels:
+    app: myapp-high-parser
+    type: daemon
+  name: myapp-high-parser
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: myapp-high-parser
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 50%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: myapp-high-parser
+        azure.workload.identity/use: "true"
+      name: myapp-high-parser
+    spec:
+      containers:
+      - command:
+        - /app/bin/parser.php
+        env:
+        - name: PRIORITY_LEVEL
+          value: high
+        - name: ALLOW_EXTERNAL_RESOURCES
+          value: "true"
+        - name: ATTRIBUTE_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              key: attributes
+              name: myapp
+        - name: CACHE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: cache
+              name: azure
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: name
+              name: database
+        - name: DATABASE_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: host
+              name: database
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: database
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: database
+        - name: DOCUMENT_STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: documentstore
+        - name: EMAIL_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: email
+              name: myapp
+        - name: ENVIRONMENT
+          valueFrom:
+            secretKeyRef:
+              key: environment
+              name: myapp
+        - name: LOCK_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: hostname
+              name: locks
+        - name: LOCK_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: locks
+        - name: LOCK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: locks
+        - name: LOCK_DATABASE
+          valueFrom:
+            secretKeyRef:
+              key: database
+              name: locks
+        - name: LOG_LEVEL
+          valueFrom:
+            secretKeyRef:
+              key: log_level
+              name: myapp
+        - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: productimagestore
+              name: myapp
+        - name: QUEUE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: queue
+              name: azure
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              key: dsn
+              name: sentry
+        - name: SENTRY_SAMPLE_RATE
+          valueFrom:
+            secretKeyRef:
+              key: profiling
+              name: sentry
+        - name: STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: azure
+        - name: SNITCH
+          value: xxxb9c3871
+        - name: PHP_MEMORY_LIMIT
+          value: 480M
+        image: docker.io/myapp-cli
+        livenessProbe:
+          exec:
+            command:
+            - /app/bin/healthy.php
+            - "60"
+          failureThreshold: 1
+          initialDelaySeconds: 30
+          periodSeconds: 300
+          timeoutSeconds: 30
+        name: daemon
+        resources:
+          limits:
+            memory: 500Mi
+          requests:
+            cpu: 300m
+            memory: 50Mi
+      nodeSelector:
+        type: user
+      priorityClassName: myapp-priority-high
+      restartPolicy: Always
+      serviceAccountName: aks-cluster-identity
+      terminationGracePeriodSeconds: 300
+      tolerations:
+      - effect: NoSchedule
+        key: environment
+        operator: Equal
+        value: production
+status: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    scale-messages-per-pod: "10"
+    scale-minimum: "1"
+    scale-queue-name: memory-parser
+  labels:
+    app: myapp-memory-parser
+    type: daemon
+  name: myapp-memory-parser
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myapp-memory-parser
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 50%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: myapp-memory-parser
+        azure.workload.identity/use: "true"
+      name: myapp-memory-parser
+    spec:
+      containers:
+      - command:
+        - /app/bin/parser.php
+        env:
+        - name: PRIORITY_LEVEL
+          value: memory
+        - name: ALLOW_EXTERNAL_RESOURCES
+          value: "true"
+        - name: ATTRIBUTE_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              key: attributes
+              name: myapp
+        - name: CACHE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: cache
+              name: azure
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: name
+              name: database
+        - name: DATABASE_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: host
+              name: database
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: database
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: database
+        - name: DOCUMENT_STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: documentstore
+        - name: EMAIL_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: email
+              name: myapp
+        - name: ENVIRONMENT
+          valueFrom:
+            secretKeyRef:
+              key: environment
+              name: myapp
+        - name: LOCK_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: hostname
+              name: locks
+        - name: LOCK_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: locks
+        - name: LOCK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: locks
+        - name: LOCK_DATABASE
+          valueFrom:
+            secretKeyRef:
+              key: database
+              name: locks
+        - name: LOG_LEVEL
+          valueFrom:
+            secretKeyRef:
+              key: log_level
+              name: myapp
+        - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: productimagestore
+              name: myapp
+        - name: QUEUE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: queue
+              name: azure
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              key: dsn
+              name: sentry
+        - name: SENTRY_SAMPLE_RATE
+          valueFrom:
+            secretKeyRef:
+              key: profiling
+              name: sentry
+        - name: STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: azure
+        - name: SNITCH
+          value: xxx6f386c4
+        - name: PHP_MEMORY_LIMIT
+          value: 480M
+        image: docker.io/myapp-cli
+        livenessProbe:
+          exec:
+            command:
+            - /app/bin/healthy.php
+            - "60"
+          failureThreshold: 1
+          initialDelaySeconds: 30
+          periodSeconds: 300
+          timeoutSeconds: 30
+        name: daemon
+        resources:
+          limits:
+            memory: 500Mi
+          requests:
+            cpu: 300m
+            memory: 50Mi
+      nodeSelector:
+        type: user
+      priorityClassName: myapp-priority-memory
+      restartPolicy: Always
+      serviceAccountName: aks-cluster-identity
+      terminationGracePeriodSeconds: 300
+      tolerations:
+      - effect: NoSchedule
+        key: environment
+        operator: Equal
+        value: production
+status: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    scale-messages-per-pod: "50"
+    scale-minimum: "100"
+    scale-queue-name: low-validator
+  labels:
+    app: myapp-low-validator
+    type: daemon
+  name: myapp-low-validator
+spec:
+  replicas: 100
+  selector:
+    matchLabels:
+      app: myapp-low-validator
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 50%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: myapp-low-validator
+        azure.workload.identity/use: "true"
+      name: myapp-low-validator
+    spec:
+      containers:
+      - command:
+        - /app/bin/validator.php
+        env:
+        - name: PRIORITY_LEVEL
+          value: low
+        - name: ALLOW_EXTERNAL_RESOURCES
+          value: "true"
+        - name: ATTRIBUTE_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              key: attributes
+              name: myapp
+        - name: CACHE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: cache
+              name: azure
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: name
+              name: database
+        - name: DATABASE_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: host
+              name: database
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: database
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: database
+        - name: DOCUMENT_STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: documentstore
+        - name: EMAIL_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: email
+              name: myapp
+        - name: ENVIRONMENT
+          valueFrom:
+            secretKeyRef:
+              key: environment
+              name: myapp
+        - name: LOCK_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: hostname
+              name: locks
+        - name: LOCK_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: locks
+        - name: LOCK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: locks
+        - name: LOCK_DATABASE
+          valueFrom:
+            secretKeyRef:
+              key: database
+              name: locks
+        - name: LOG_LEVEL
+          valueFrom:
+            secretKeyRef:
+              key: log_level
+              name: myapp
+        - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: productimagestore
+              name: myapp
+        - name: QUEUE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: queue
+              name: azure
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              key: dsn
+              name: sentry
+        - name: SENTRY_SAMPLE_RATE
+          valueFrom:
+            secretKeyRef:
+              key: profiling
+              name: sentry
+        - name: STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: azure
+        - name: SNITCH
+          value: xxx6be36e8
+        - name: PHP_MEMORY_LIMIT
+          value: 480M
+        image: docker.io/myapp-cli
+        livenessProbe:
+          exec:
+            command:
+            - /app/bin/healthy.php
+            - "60"
+          failureThreshold: 1
+          initialDelaySeconds: 30
+          periodSeconds: 300
+          timeoutSeconds: 30
+        name: daemon
+        resources:
+          limits:
+            memory: 500Mi
+          requests:
+            cpu: 50m
+            memory: 50Mi
+      nodeSelector:
+        type: user
+      priorityClassName: myapp-priority-low
+      restartPolicy: Always
+      serviceAccountName: aks-cluster-identity
+      terminationGracePeriodSeconds: 300
+      tolerations:
+      - effect: NoSchedule
+        key: environment
+        operator: Equal
+        value: production
+status: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    scale-messages-per-pod: "50"
+    scale-minimum: "100"
+    scale-queue-name: medium-validator
+  labels:
+    app: myapp-medium-validator
+    type: daemon
+  name: myapp-medium-validator
+spec:
+  replicas: 100
+  selector:
+    matchLabels:
+      app: myapp-medium-validator
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 50%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: myapp-medium-validator
+        azure.workload.identity/use: "true"
+      name: myapp-medium-validator
+    spec:
+      containers:
+      - command:
+        - /app/bin/validator.php
+        env:
+        - name: PRIORITY_LEVEL
+          value: medium
+        - name: ALLOW_EXTERNAL_RESOURCES
+          value: "true"
+        - name: ATTRIBUTE_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              key: attributes
+              name: myapp
+        - name: CACHE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: cache
+              name: azure
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: name
+              name: database
+        - name: DATABASE_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: host
+              name: database
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: database
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: database
+        - name: DOCUMENT_STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: documentstore
+        - name: EMAIL_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: email
+              name: myapp
+        - name: ENVIRONMENT
+          valueFrom:
+            secretKeyRef:
+              key: environment
+              name: myapp
+        - name: LOCK_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: hostname
+              name: locks
+        - name: LOCK_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: locks
+        - name: LOCK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: locks
+        - name: LOCK_DATABASE
+          valueFrom:
+            secretKeyRef:
+              key: database
+              name: locks
+        - name: LOG_LEVEL
+          valueFrom:
+            secretKeyRef:
+              key: log_level
+              name: myapp
+        - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: productimagestore
+              name: myapp
+        - name: QUEUE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: queue
+              name: azure
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              key: dsn
+              name: sentry
+        - name: SENTRY_SAMPLE_RATE
+          valueFrom:
+            secretKeyRef:
+              key: profiling
+              name: sentry
+        - name: STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: azure
+        - name: SNITCH
+          value: xxx722df88
+        - name: PHP_MEMORY_LIMIT
+          value: 480M
+        image: docker.io/myapp-cli
+        livenessProbe:
+          exec:
+            command:
+            - /app/bin/healthy.php
+            - "60"
+          failureThreshold: 1
+          initialDelaySeconds: 30
+          periodSeconds: 300
+          timeoutSeconds: 30
+        name: daemon
+        resources:
+          limits:
+            memory: 500Mi
+          requests:
+            cpu: 50m
+            memory: 50Mi
+      nodeSelector:
+        type: user
+      priorityClassName: myapp-priority-medium
+      restartPolicy: Always
+      serviceAccountName: aks-cluster-identity
+      terminationGracePeriodSeconds: 300
+      tolerations:
+      - effect: NoSchedule
+        key: environment
+        operator: Equal
+        value: production
+status: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    scale-messages-per-pod: "50"
+    scale-minimum: "10"
+    scale-queue-name: high-validator
+  labels:
+    app: myapp-high-validator
+    type: daemon
+  name: myapp-high-validator
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: myapp-high-validator
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 50%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: myapp-high-validator
+        azure.workload.identity/use: "true"
+      name: myapp-high-validator
+    spec:
+      containers:
+      - command:
+        - /app/bin/validator.php
+        env:
+        - name: PRIORITY_LEVEL
+          value: high
+        - name: ALLOW_EXTERNAL_RESOURCES
+          value: "true"
+        - name: ATTRIBUTE_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              key: attributes
+              name: myapp
+        - name: CACHE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: cache
+              name: azure
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: name
+              name: database
+        - name: DATABASE_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: host
+              name: database
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: database
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: database
+        - name: DOCUMENT_STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: documentstore
+        - name: EMAIL_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: email
+              name: myapp
+        - name: ENVIRONMENT
+          valueFrom:
+            secretKeyRef:
+              key: environment
+              name: myapp
+        - name: LOCK_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: hostname
+              name: locks
+        - name: LOCK_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: locks
+        - name: LOCK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: locks
+        - name: LOCK_DATABASE
+          valueFrom:
+            secretKeyRef:
+              key: database
+              name: locks
+        - name: LOG_LEVEL
+          valueFrom:
+            secretKeyRef:
+              key: log_level
+              name: myapp
+        - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: productimagestore
+              name: myapp
+        - name: QUEUE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: queue
+              name: azure
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              key: dsn
+              name: sentry
+        - name: SENTRY_SAMPLE_RATE
+          valueFrom:
+            secretKeyRef:
+              key: profiling
+              name: sentry
+        - name: STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: azure
+        - name: SNITCH
+          value: xxx19b07be
+        - name: PHP_MEMORY_LIMIT
+          value: 480M
+        image: docker.io/myapp-cli
+        livenessProbe:
+          exec:
+            command:
+            - /app/bin/healthy.php
+            - "60"
+          failureThreshold: 1
+          initialDelaySeconds: 30
+          periodSeconds: 300
+          timeoutSeconds: 30
+        name: daemon
+        resources:
+          limits:
+            memory: 500Mi
+          requests:
+            cpu: 50m
+            memory: 50Mi
+      nodeSelector:
+        type: user
+      priorityClassName: myapp-priority-high
+      restartPolicy: Always
+      serviceAccountName: aks-cluster-identity
+      terminationGracePeriodSeconds: 300
+      tolerations:
+      - effect: NoSchedule
+        key: environment
+        operator: Equal
+        value: production
+status: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    scale-messages-per-pod: "100"
+    scale-minimum: "1"
+    scale-queue-name: memory-validator
+  labels:
+    app: myapp-memory-validator
+    type: daemon
+  name: myapp-memory-validator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myapp-memory-validator
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 50%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: myapp-memory-validator
+        azure.workload.identity/use: "true"
+      name: myapp-memory-validator
+    spec:
+      containers:
+      - command:
+        - /app/bin/validator.php
+        env:
+        - name: PRIORITY_LEVEL
+          value: memory
+        - name: ALLOW_EXTERNAL_RESOURCES
+          value: "true"
+        - name: ATTRIBUTE_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              key: attributes
+              name: myapp
+        - name: CACHE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: cache
+              name: azure
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: name
+              name: database
+        - name: DATABASE_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: host
+              name: database
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: database
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: database
+        - name: DOCUMENT_STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: documentstore
+        - name: EMAIL_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: email
+              name: myapp
+        - name: ENVIRONMENT
+          valueFrom:
+            secretKeyRef:
+              key: environment
+              name: myapp
+        - name: LOCK_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: hostname
+              name: locks
+        - name: LOCK_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: locks
+        - name: LOCK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: locks
+        - name: LOCK_DATABASE
+          valueFrom:
+            secretKeyRef:
+              key: database
+              name: locks
+        - name: LOG_LEVEL
+          valueFrom:
+            secretKeyRef:
+              key: log_level
+              name: myapp
+        - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: productimagestore
+              name: myapp
+        - name: QUEUE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: queue
+              name: azure
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              key: dsn
+              name: sentry
+        - name: SENTRY_SAMPLE_RATE
+          valueFrom:
+            secretKeyRef:
+              key: profiling
+              name: sentry
+        - name: STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: azure
+        - name: SNITCH
+          value: xxxda003ae
+        - name: PHP_MEMORY_LIMIT
+          value: 480M
+        image: docker.io/myapp-cli
+        livenessProbe:
+          exec:
+            command:
+            - /app/bin/healthy.php
+            - "60"
+          failureThreshold: 1
+          initialDelaySeconds: 30
+          periodSeconds: 300
+          timeoutSeconds: 30
+        name: daemon
+        resources:
+          limits:
+            memory: 500Mi
+          requests:
+            cpu: 50m
+            memory: 50Mi
+      nodeSelector:
+        type: user
+      priorityClassName: myapp-priority-memory
+      restartPolicy: Always
+      serviceAccountName: aks-cluster-identity
+      terminationGracePeriodSeconds: 300
+      tolerations:
+      - effect: NoSchedule
+        key: environment
+        operator: Equal
+        value: production
+status: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    scale-messages-per-pod: "100"
+    scale-minimum: "50"
+    scale-queue-name: low-storage
+  labels:
+    app: myapp-low-storage
+    type: daemon
+  name: myapp-low-storage
+spec:
+  replicas: 50
+  selector:
+    matchLabels:
+      app: myapp-low-storage
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 50%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: myapp-low-storage
+        azure.workload.identity/use: "true"
+      name: myapp-low-storage
+    spec:
+      containers:
+      - command:
+        - /app/bin/storage.php
+        env:
+        - name: PRIORITY_LEVEL
+          value: low
+        - name: ALLOW_EXTERNAL_RESOURCES
+          value: "true"
+        - name: ATTRIBUTE_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              key: attributes
+              name: myapp
+        - name: CACHE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: cache
+              name: azure
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: name
+              name: database
+        - name: DATABASE_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: host
+              name: database
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: database
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: database
+        - name: DOCUMENT_STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: documentstore
+        - name: EMAIL_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: email
+              name: myapp
+        - name: ENVIRONMENT
+          valueFrom:
+            secretKeyRef:
+              key: environment
+              name: myapp
+        - name: LOCK_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: hostname
+              name: locks
+        - name: LOCK_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: locks
+        - name: LOCK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: locks
+        - name: LOCK_DATABASE
+          valueFrom:
+            secretKeyRef:
+              key: database
+              name: locks
+        - name: LOG_LEVEL
+          valueFrom:
+            secretKeyRef:
+              key: log_level
+              name: myapp
+        - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: productimagestore
+              name: myapp
+        - name: QUEUE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: queue
+              name: azure
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              key: dsn
+              name: sentry
+        - name: SENTRY_SAMPLE_RATE
+          valueFrom:
+            secretKeyRef:
+              key: profiling
+              name: sentry
+        - name: STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: azure
+        - name: SNITCH
+          value: xxxddd9e6a
+        - name: PHP_MEMORY_LIMIT
+          value: 480M
+        image: docker.io/myapp-cli
+        livenessProbe:
+          exec:
+            command:
+            - /app/bin/healthy.php
+            - "60"
+          failureThreshold: 1
+          initialDelaySeconds: 30
+          periodSeconds: 300
+          timeoutSeconds: 30
+        name: daemon
+        resources:
+          limits:
+            memory: 500Mi
+          requests:
+            cpu: 200m
+            memory: 50Mi
+      nodeSelector:
+        type: user
+      priorityClassName: myapp-priority-low
+      restartPolicy: Always
+      serviceAccountName: aks-cluster-identity
+      terminationGracePeriodSeconds: 300
+      tolerations:
+      - effect: NoSchedule
+        key: environment
+        operator: Equal
+        value: production
+status: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    scale-messages-per-pod: "100"
+    scale-minimum: "50"
+    scale-queue-name: medium-storage
+  labels:
+    app: myapp-medium-storage
+    type: daemon
+  name: myapp-medium-storage
+spec:
+  replicas: 50
+  selector:
+    matchLabels:
+      app: myapp-medium-storage
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 50%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: myapp-medium-storage
+        azure.workload.identity/use: "true"
+      name: myapp-medium-storage
+    spec:
+      containers:
+      - command:
+        - /app/bin/storage.php
+        env:
+        - name: PRIORITY_LEVEL
+          value: medium
+        - name: ALLOW_EXTERNAL_RESOURCES
+          value: "true"
+        - name: ATTRIBUTE_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              key: attributes
+              name: myapp
+        - name: CACHE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: cache
+              name: azure
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: name
+              name: database
+        - name: DATABASE_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: host
+              name: database
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: database
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: database
+        - name: DOCUMENT_STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: documentstore
+        - name: EMAIL_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: email
+              name: myapp
+        - name: ENVIRONMENT
+          valueFrom:
+            secretKeyRef:
+              key: environment
+              name: myapp
+        - name: LOCK_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: hostname
+              name: locks
+        - name: LOCK_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: locks
+        - name: LOCK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: locks
+        - name: LOCK_DATABASE
+          valueFrom:
+            secretKeyRef:
+              key: database
+              name: locks
+        - name: LOG_LEVEL
+          valueFrom:
+            secretKeyRef:
+              key: log_level
+              name: myapp
+        - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: productimagestore
+              name: myapp
+        - name: QUEUE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: queue
+              name: azure
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              key: dsn
+              name: sentry
+        - name: SENTRY_SAMPLE_RATE
+          valueFrom:
+            secretKeyRef:
+              key: profiling
+              name: sentry
+        - name: STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: azure
+        - name: SNITCH
+          value: xxx73d067c
+        - name: PHP_MEMORY_LIMIT
+          value: 480M
+        image: docker.io/myapp-cli
+        livenessProbe:
+          exec:
+            command:
+            - /app/bin/healthy.php
+            - "60"
+          failureThreshold: 1
+          initialDelaySeconds: 30
+          periodSeconds: 300
+          timeoutSeconds: 30
+        name: daemon
+        resources:
+          limits:
+            memory: 500Mi
+          requests:
+            cpu: 200m
+            memory: 50Mi
+      nodeSelector:
+        type: user
+      priorityClassName: myapp-priority-medium
+      restartPolicy: Always
+      serviceAccountName: aks-cluster-identity
+      terminationGracePeriodSeconds: 300
+      tolerations:
+      - effect: NoSchedule
+        key: environment
+        operator: Equal
+        value: production
+status: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    scale-messages-per-pod: "100"
+    scale-minimum: "10"
+    scale-queue-name: high-storage
+  labels:
+    app: myapp-high-storage
+    type: daemon
+  name: myapp-high-storage
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: myapp-high-storage
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 50%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: myapp-high-storage
+        azure.workload.identity/use: "true"
+      name: myapp-high-storage
+    spec:
+      containers:
+      - command:
+        - /app/bin/storage.php
+        env:
+        - name: PRIORITY_LEVEL
+          value: high
+        - name: ALLOW_EXTERNAL_RESOURCES
+          value: "true"
+        - name: ATTRIBUTE_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              key: attributes
+              name: myapp
+        - name: CACHE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: cache
+              name: azure
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: name
+              name: database
+        - name: DATABASE_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: host
+              name: database
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: database
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: database
+        - name: DOCUMENT_STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: documentstore
+        - name: EMAIL_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: email
+              name: myapp
+        - name: ENVIRONMENT
+          valueFrom:
+            secretKeyRef:
+              key: environment
+              name: myapp
+        - name: LOCK_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: hostname
+              name: locks
+        - name: LOCK_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: locks
+        - name: LOCK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: locks
+        - name: LOCK_DATABASE
+          valueFrom:
+            secretKeyRef:
+              key: database
+              name: locks
+        - name: LOG_LEVEL
+          valueFrom:
+            secretKeyRef:
+              key: log_level
+              name: myapp
+        - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: productimagestore
+              name: myapp
+        - name: QUEUE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: queue
+              name: azure
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              key: dsn
+              name: sentry
+        - name: SENTRY_SAMPLE_RATE
+          valueFrom:
+            secretKeyRef:
+              key: profiling
+              name: sentry
+        - name: STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: azure
+        - name: SNITCH
+          value: xxx59939ee
+        - name: PHP_MEMORY_LIMIT
+          value: 480M
+        image: docker.io/myapp-cli
+        livenessProbe:
+          exec:
+            command:
+            - /app/bin/healthy.php
+            - "60"
+          failureThreshold: 1
+          initialDelaySeconds: 30
+          periodSeconds: 300
+          timeoutSeconds: 30
+        name: daemon
+        resources:
+          limits:
+            memory: 500Mi
+          requests:
+            cpu: 200m
+            memory: 50Mi
+      nodeSelector:
+        type: user
+      priorityClassName: myapp-priority-high
+      restartPolicy: Always
+      serviceAccountName: aks-cluster-identity
+      terminationGracePeriodSeconds: 300
+      tolerations:
+      - effect: NoSchedule
+        key: environment
+        operator: Equal
+        value: production
+status: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    scale-messages-per-pod: "100"
+    scale-minimum: "1"
+    scale-queue-name: memory-storage
+  labels:
+    app: myapp-memory-storage
+    type: daemon
+  name: myapp-memory-storage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myapp-memory-storage
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 50%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: myapp-memory-storage
+        azure.workload.identity/use: "true"
+      name: myapp-memory-storage
+    spec:
+      containers:
+      - command:
+        - /app/bin/storage.php
+        env:
+        - name: PRIORITY_LEVEL
+          value: memory
+        - name: ALLOW_EXTERNAL_RESOURCES
+          value: "true"
+        - name: ATTRIBUTE_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              key: attributes
+              name: myapp
+        - name: CACHE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: cache
+              name: azure
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: name
+              name: database
+        - name: DATABASE_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: host
+              name: database
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: database
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: database
+        - name: DOCUMENT_STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: documentstore
+        - name: EMAIL_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: email
+              name: myapp
+        - name: ENVIRONMENT
+          valueFrom:
+            secretKeyRef:
+              key: environment
+              name: myapp
+        - name: LOCK_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: hostname
+              name: locks
+        - name: LOCK_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: locks
+        - name: LOCK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: locks
+        - name: LOCK_DATABASE
+          valueFrom:
+            secretKeyRef:
+              key: database
+              name: locks
+        - name: LOG_LEVEL
+          valueFrom:
+            secretKeyRef:
+              key: log_level
+              name: myapp
+        - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: productimagestore
+              name: myapp
+        - name: QUEUE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: queue
+              name: azure
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              key: dsn
+              name: sentry
+        - name: SENTRY_SAMPLE_RATE
+          valueFrom:
+            secretKeyRef:
+              key: profiling
+              name: sentry
+        - name: STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: azure
+        - name: SNITCH
+          value: xxx063aea4
+        - name: PHP_MEMORY_LIMIT
+          value: 480M
+        image: docker.io/myapp-cli
+        livenessProbe:
+          exec:
+            command:
+            - /app/bin/healthy.php
+            - "60"
+          failureThreshold: 1
+          initialDelaySeconds: 30
+          periodSeconds: 300
+          timeoutSeconds: 30
+        name: daemon
+        resources:
+          limits:
+            memory: 500Mi
+          requests:
+            cpu: 200m
+            memory: 50Mi
+      nodeSelector:
+        type: user
+      priorityClassName: myapp-priority-memory
+      restartPolicy: Always
+      serviceAccountName: aks-cluster-identity
+      terminationGracePeriodSeconds: 300
+      tolerations:
+      - effect: NoSchedule
+        key: environment
+        operator: Equal
+        value: production
+status: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    scale-database-requests: "8"
+    scale-messages-per-pod: "10"
+    scale-minimum: "10"
+    scale-queue-name: low-serializer
+  labels:
+    app: myapp-low-serializer
+    type: daemon
+  name: myapp-low-serializer
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: myapp-low-serializer
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 50%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: myapp-low-serializer
+        azure.workload.identity/use: "true"
+      name: myapp-low-serializer
+    spec:
+      containers:
+      - command:
+        - /app/bin/serializer.php
+        env:
+        - name: PRIORITY_LEVEL
+          value: low
+        - name: ALLOW_EXTERNAL_RESOURCES
+          value: "true"
+        - name: ATTRIBUTE_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              key: attributes
+              name: myapp
+        - name: CACHE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: cache
+              name: azure
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: name
+              name: database
+        - name: DATABASE_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: host
+              name: database
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: database
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: database
+        - name: DOCUMENT_STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: documentstore
+        - name: EMAIL_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: email
+              name: myapp
+        - name: ENVIRONMENT
+          valueFrom:
+            secretKeyRef:
+              key: environment
+              name: myapp
+        - name: LOCK_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: hostname
+              name: locks
+        - name: LOCK_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: locks
+        - name: LOCK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: locks
+        - name: LOCK_DATABASE
+          valueFrom:
+            secretKeyRef:
+              key: database
+              name: locks
+        - name: LOG_LEVEL
+          valueFrom:
+            secretKeyRef:
+              key: log_level
+              name: myapp
+        - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: productimagestore
+              name: myapp
+        - name: QUEUE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: queue
+              name: azure
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              key: dsn
+              name: sentry
+        - name: SENTRY_SAMPLE_RATE
+          valueFrom:
+            secretKeyRef:
+              key: profiling
+              name: sentry
+        - name: STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: azure
+        - name: SNITCH
+          value: xxxe29bf60
+        - name: PHP_MEMORY_LIMIT
+          value: 980M
+        image: docker.io/myapp-cli
+        livenessProbe:
+          exec:
+            command:
+            - /app/bin/healthy.php
+            - "60"
+          failureThreshold: 1
+          initialDelaySeconds: 30
+          periodSeconds: 300
+          timeoutSeconds: 30
+        name: daemon
+        resources:
+          limits:
+            memory: 1000Mi
+          requests:
+            cpu: "1"
+            memory: 1000Mi
+      nodeSelector:
+        type: user
+      priorityClassName: myapp-priority-low
+      restartPolicy: Always
+      serviceAccountName: aks-cluster-identity
+      terminationGracePeriodSeconds: 300
+      tolerations:
+      - effect: NoSchedule
+        key: environment
+        operator: Equal
+        value: production
+status: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    scale-database-requests: "8"
+    scale-messages-per-pod: "10"
+    scale-minimum: "10"
+    scale-queue-name: medium-serializer
+  labels:
+    app: myapp-medium-serializer
+    type: daemon
+  name: myapp-medium-serializer
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: myapp-medium-serializer
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 50%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: myapp-medium-serializer
+        azure.workload.identity/use: "true"
+      name: myapp-medium-serializer
+    spec:
+      containers:
+      - command:
+        - /app/bin/serializer.php
+        env:
+        - name: PRIORITY_LEVEL
+          value: medium
+        - name: ALLOW_EXTERNAL_RESOURCES
+          value: "true"
+        - name: ATTRIBUTE_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              key: attributes
+              name: myapp
+        - name: CACHE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: cache
+              name: azure
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: name
+              name: database
+        - name: DATABASE_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: host
+              name: database
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: database
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: database
+        - name: DOCUMENT_STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: documentstore
+        - name: EMAIL_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: email
+              name: myapp
+        - name: ENVIRONMENT
+          valueFrom:
+            secretKeyRef:
+              key: environment
+              name: myapp
+        - name: LOCK_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: hostname
+              name: locks
+        - name: LOCK_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: locks
+        - name: LOCK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: locks
+        - name: LOCK_DATABASE
+          valueFrom:
+            secretKeyRef:
+              key: database
+              name: locks
+        - name: LOG_LEVEL
+          valueFrom:
+            secretKeyRef:
+              key: log_level
+              name: myapp
+        - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: productimagestore
+              name: myapp
+        - name: QUEUE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: queue
+              name: azure
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              key: dsn
+              name: sentry
+        - name: SENTRY_SAMPLE_RATE
+          valueFrom:
+            secretKeyRef:
+              key: profiling
+              name: sentry
+        - name: STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: azure
+        - name: SNITCH
+          value: xxx516c08b
+        - name: PHP_MEMORY_LIMIT
+          value: 980M
+        image: docker.io/myapp-cli
+        livenessProbe:
+          exec:
+            command:
+            - /app/bin/healthy.php
+            - "60"
+          failureThreshold: 1
+          initialDelaySeconds: 30
+          periodSeconds: 300
+          timeoutSeconds: 30
+        name: daemon
+        resources:
+          limits:
+            memory: 1000Mi
+          requests:
+            cpu: "1"
+            memory: 1000Mi
+      nodeSelector:
+        type: user
+      priorityClassName: myapp-priority-medium
+      restartPolicy: Always
+      serviceAccountName: aks-cluster-identity
+      terminationGracePeriodSeconds: 300
+      tolerations:
+      - effect: NoSchedule
+        key: environment
+        operator: Equal
+        value: production
+status: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    scale-database-requests: "8"
+    scale-messages-per-pod: "10"
+    scale-minimum: "5"
+    scale-queue-name: high-serializer
+  labels:
+    app: myapp-high-serializer
+    type: daemon
+  name: myapp-high-serializer
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: myapp-high-serializer
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 50%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: myapp-high-serializer
+        azure.workload.identity/use: "true"
+      name: myapp-high-serializer
+    spec:
+      containers:
+      - command:
+        - /app/bin/serializer.php
+        env:
+        - name: PRIORITY_LEVEL
+          value: high
+        - name: ALLOW_EXTERNAL_RESOURCES
+          value: "true"
+        - name: ATTRIBUTE_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              key: attributes
+              name: myapp
+        - name: CACHE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: cache
+              name: azure
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: name
+              name: database
+        - name: DATABASE_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: host
+              name: database
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: database
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: database
+        - name: DOCUMENT_STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: documentstore
+        - name: EMAIL_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: email
+              name: myapp
+        - name: ENVIRONMENT
+          valueFrom:
+            secretKeyRef:
+              key: environment
+              name: myapp
+        - name: LOCK_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: hostname
+              name: locks
+        - name: LOCK_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: locks
+        - name: LOCK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: locks
+        - name: LOCK_DATABASE
+          valueFrom:
+            secretKeyRef:
+              key: database
+              name: locks
+        - name: LOG_LEVEL
+          valueFrom:
+            secretKeyRef:
+              key: log_level
+              name: myapp
+        - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: productimagestore
+              name: myapp
+        - name: QUEUE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: queue
+              name: azure
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              key: dsn
+              name: sentry
+        - name: SENTRY_SAMPLE_RATE
+          valueFrom:
+            secretKeyRef:
+              key: profiling
+              name: sentry
+        - name: STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: azure
+        - name: SNITCH
+          value: xxxa3b2e51
+        - name: PHP_MEMORY_LIMIT
+          value: 980M
+        image: docker.io/myapp-cli
+        livenessProbe:
+          exec:
+            command:
+            - /app/bin/healthy.php
+            - "60"
+          failureThreshold: 1
+          initialDelaySeconds: 30
+          periodSeconds: 300
+          timeoutSeconds: 30
+        name: daemon
+        resources:
+          limits:
+            memory: 1000Mi
+          requests:
+            cpu: "1"
+            memory: 1000Mi
+      nodeSelector:
+        type: user
+      priorityClassName: myapp-priority-high
+      restartPolicy: Always
+      serviceAccountName: aks-cluster-identity
+      terminationGracePeriodSeconds: 300
+      tolerations:
+      - effect: NoSchedule
+        key: environment
+        operator: Equal
+        value: production
+status: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    scale-database-requests: "8"
+    scale-messages-per-pod: "10"
+    scale-minimum: "1"
+    scale-queue-name: memory-serializer
+  labels:
+    app: myapp-memory-serializer
+    type: daemon
+  name: myapp-memory-serializer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myapp-memory-serializer
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 50%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: myapp-memory-serializer
+        azure.workload.identity/use: "true"
+      name: myapp-memory-serializer
+    spec:
+      containers:
+      - command:
+        - /app/bin/serializer.php
+        env:
+        - name: PRIORITY_LEVEL
+          value: memory
+        - name: ALLOW_EXTERNAL_RESOURCES
+          value: "true"
+        - name: ATTRIBUTE_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              key: attributes
+              name: myapp
+        - name: CACHE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: cache
+              name: azure
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: name
+              name: database
+        - name: DATABASE_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: host
+              name: database
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: database
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: database
+        - name: DOCUMENT_STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: documentstore
+        - name: EMAIL_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: email
+              name: myapp
+        - name: ENVIRONMENT
+          valueFrom:
+            secretKeyRef:
+              key: environment
+              name: myapp
+        - name: LOCK_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: hostname
+              name: locks
+        - name: LOCK_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: locks
+        - name: LOCK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: locks
+        - name: LOCK_DATABASE
+          valueFrom:
+            secretKeyRef:
+              key: database
+              name: locks
+        - name: LOG_LEVEL
+          valueFrom:
+            secretKeyRef:
+              key: log_level
+              name: myapp
+        - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: productimagestore
+              name: myapp
+        - name: QUEUE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: queue
+              name: azure
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              key: dsn
+              name: sentry
+        - name: SENTRY_SAMPLE_RATE
+          valueFrom:
+            secretKeyRef:
+              key: profiling
+              name: sentry
+        - name: STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: azure
+        - name: SNITCH
+          value: xxx1768732
+        - name: PHP_MEMORY_LIMIT
+          value: 4980M
+        image: docker.io/myapp-cli
+        livenessProbe:
+          exec:
+            command:
+            - /app/bin/healthy.php
+            - "60"
+          failureThreshold: 1
+          initialDelaySeconds: 30
+          periodSeconds: 300
+          timeoutSeconds: 30
+        name: daemon
+        resources:
+          limits:
+            memory: 5000Mi
+          requests:
+            cpu: "1"
+            memory: 5000Mi
+      nodeSelector:
+        type: user
+      priorityClassName: myapp-priority-memory
+      restartPolicy: Always
+      serviceAccountName: aks-cluster-identity
+      terminationGracePeriodSeconds: 300
+      tolerations:
+      - effect: NoSchedule
+        key: environment
+        operator: Equal
+        value: production
+status: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    scale-messages-per-pod: "10"
+    scale-minimum: "50"
+    scale-queue-name: low-outbound
+  labels:
+    app: myapp-low-outbound
+    type: daemon
+  name: myapp-low-outbound
+spec:
+  replicas: 50
+  selector:
+    matchLabels:
+      app: myapp-low-outbound
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 50%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: myapp-low-outbound
+        azure.workload.identity/use: "true"
+      name: myapp-low-outbound
+    spec:
+      containers:
+      - command:
+        - /app/bin/outbound.php
+        env:
+        - name: PRIORITY_LEVEL
+          value: low
+        - name: ALLOW_EXTERNAL_RESOURCES
+          value: "true"
+        - name: ATTRIBUTE_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              key: attributes
+              name: myapp
+        - name: CACHE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: cache
+              name: azure
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: name
+              name: database
+        - name: DATABASE_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: host
+              name: database
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: database
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: database
+        - name: DOCUMENT_STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: documentstore
+        - name: EMAIL_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: email
+              name: myapp
+        - name: ENVIRONMENT
+          valueFrom:
+            secretKeyRef:
+              key: environment
+              name: myapp
+        - name: LOCK_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: hostname
+              name: locks
+        - name: LOCK_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: locks
+        - name: LOCK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: locks
+        - name: LOCK_DATABASE
+          valueFrom:
+            secretKeyRef:
+              key: database
+              name: locks
+        - name: LOG_LEVEL
+          valueFrom:
+            secretKeyRef:
+              key: log_level
+              name: myapp
+        - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: productimagestore
+              name: myapp
+        - name: QUEUE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: queue
+              name: azure
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              key: dsn
+              name: sentry
+        - name: SENTRY_SAMPLE_RATE
+          valueFrom:
+            secretKeyRef:
+              key: profiling
+              name: sentry
+        - name: STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: azure
+        - name: SNITCH
+          value: xxx48e78eb
+        - name: PHP_MEMORY_LIMIT
+          value: 480M
+        image: docker.io/myapp-cli
+        livenessProbe:
+          exec:
+            command:
+            - /app/bin/healthy.php
+            - "60"
+          failureThreshold: 1
+          initialDelaySeconds: 30
+          periodSeconds: 300
+          timeoutSeconds: 30
+        name: daemon
+        resources:
+          limits:
+            memory: 500Mi
+          requests:
+            cpu: 50m
+            memory: 500Mi
+      nodeSelector:
+        type: user
+      priorityClassName: myapp-priority-low
+      restartPolicy: Always
+      serviceAccountName: aks-cluster-identity
+      terminationGracePeriodSeconds: 300
+      tolerations:
+      - effect: NoSchedule
+        key: environment
+        operator: Equal
+        value: production
+status: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    scale-messages-per-pod: "10"
+    scale-minimum: "50"
+    scale-queue-name: medium-outbound
+  labels:
+    app: myapp-medium-outbound
+    type: daemon
+  name: myapp-medium-outbound
+spec:
+  replicas: 50
+  selector:
+    matchLabels:
+      app: myapp-medium-outbound
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 50%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: myapp-medium-outbound
+        azure.workload.identity/use: "true"
+      name: myapp-medium-outbound
+    spec:
+      containers:
+      - command:
+        - /app/bin/outbound.php
+        env:
+        - name: PRIORITY_LEVEL
+          value: medium
+        - name: ALLOW_EXTERNAL_RESOURCES
+          value: "true"
+        - name: ATTRIBUTE_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              key: attributes
+              name: myapp
+        - name: CACHE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: cache
+              name: azure
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: name
+              name: database
+        - name: DATABASE_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: host
+              name: database
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: database
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: database
+        - name: DOCUMENT_STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: documentstore
+        - name: EMAIL_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: email
+              name: myapp
+        - name: ENVIRONMENT
+          valueFrom:
+            secretKeyRef:
+              key: environment
+              name: myapp
+        - name: LOCK_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: hostname
+              name: locks
+        - name: LOCK_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: locks
+        - name: LOCK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: locks
+        - name: LOCK_DATABASE
+          valueFrom:
+            secretKeyRef:
+              key: database
+              name: locks
+        - name: LOG_LEVEL
+          valueFrom:
+            secretKeyRef:
+              key: log_level
+              name: myapp
+        - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: productimagestore
+              name: myapp
+        - name: QUEUE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: queue
+              name: azure
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              key: dsn
+              name: sentry
+        - name: SENTRY_SAMPLE_RATE
+          valueFrom:
+            secretKeyRef:
+              key: profiling
+              name: sentry
+        - name: STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: azure
+        - name: SNITCH
+          value: xxx46fd6cd
+        - name: PHP_MEMORY_LIMIT
+          value: 480M
+        image: docker.io/myapp-cli
+        livenessProbe:
+          exec:
+            command:
+            - /app/bin/healthy.php
+            - "60"
+          failureThreshold: 1
+          initialDelaySeconds: 30
+          periodSeconds: 300
+          timeoutSeconds: 30
+        name: daemon
+        resources:
+          limits:
+            memory: 500Mi
+          requests:
+            cpu: 50m
+            memory: 500Mi
+      nodeSelector:
+        type: user
+      priorityClassName: myapp-priority-medium
+      restartPolicy: Always
+      serviceAccountName: aks-cluster-identity
+      terminationGracePeriodSeconds: 300
+      tolerations:
+      - effect: NoSchedule
+        key: environment
+        operator: Equal
+        value: production
+status: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    scale-messages-per-pod: "100"
+    scale-minimum: "10"
+    scale-queue-name: high-outbound
+  labels:
+    app: myapp-high-outbound
+    type: daemon
+  name: myapp-high-outbound
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: myapp-high-outbound
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 50%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: myapp-high-outbound
+        azure.workload.identity/use: "true"
+      name: myapp-high-outbound
+    spec:
+      containers:
+      - command:
+        - /app/bin/outbound.php
+        env:
+        - name: PRIORITY_LEVEL
+          value: high
+        - name: ALLOW_EXTERNAL_RESOURCES
+          value: "true"
+        - name: ATTRIBUTE_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              key: attributes
+              name: myapp
+        - name: CACHE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: cache
+              name: azure
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: name
+              name: database
+        - name: DATABASE_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: host
+              name: database
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: database
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: database
+        - name: DOCUMENT_STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: documentstore
+        - name: EMAIL_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: email
+              name: myapp
+        - name: ENVIRONMENT
+          valueFrom:
+            secretKeyRef:
+              key: environment
+              name: myapp
+        - name: LOCK_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: hostname
+              name: locks
+        - name: LOCK_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: locks
+        - name: LOCK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: locks
+        - name: LOCK_DATABASE
+          valueFrom:
+            secretKeyRef:
+              key: database
+              name: locks
+        - name: LOG_LEVEL
+          valueFrom:
+            secretKeyRef:
+              key: log_level
+              name: myapp
+        - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: productimagestore
+              name: myapp
+        - name: QUEUE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: queue
+              name: azure
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              key: dsn
+              name: sentry
+        - name: SENTRY_SAMPLE_RATE
+          valueFrom:
+            secretKeyRef:
+              key: profiling
+              name: sentry
+        - name: STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: azure
+        - name: SNITCH
+          value: xxx808f3b0
+        - name: PHP_MEMORY_LIMIT
+          value: 480M
+        image: docker.io/myapp-cli
+        livenessProbe:
+          exec:
+            command:
+            - /app/bin/healthy.php
+            - "60"
+          failureThreshold: 1
+          initialDelaySeconds: 30
+          periodSeconds: 300
+          timeoutSeconds: 30
+        name: daemon
+        resources:
+          limits:
+            memory: 500Mi
+          requests:
+            cpu: 50m
+            memory: 500Mi
+      nodeSelector:
+        type: user
+      priorityClassName: myapp-priority-high
+      restartPolicy: Always
+      serviceAccountName: aks-cluster-identity
+      terminationGracePeriodSeconds: 300
+      tolerations:
+      - effect: NoSchedule
+        key: environment
+        operator: Equal
+        value: production
+status: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    scale-messages-per-pod: "10"
+    scale-minimum: "1"
+    scale-queue-name: memory-outbound
+  labels:
+    app: myapp-memory-outbound
+    type: daemon
+  name: myapp-memory-outbound
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myapp-memory-outbound
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 50%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: myapp-memory-outbound
+        azure.workload.identity/use: "true"
+      name: myapp-memory-outbound
+    spec:
+      containers:
+      - command:
+        - /app/bin/outbound.php
+        env:
+        - name: PRIORITY_LEVEL
+          value: memory
+        - name: ALLOW_EXTERNAL_RESOURCES
+          value: "true"
+        - name: ATTRIBUTE_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              key: attributes
+              name: myapp
+        - name: CACHE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: cache
+              name: azure
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: name
+              name: database
+        - name: DATABASE_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: host
+              name: database
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: database
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: database
+        - name: DOCUMENT_STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: documentstore
+        - name: EMAIL_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: email
+              name: myapp
+        - name: ENVIRONMENT
+          valueFrom:
+            secretKeyRef:
+              key: environment
+              name: myapp
+        - name: LOCK_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: hostname
+              name: locks
+        - name: LOCK_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: locks
+        - name: LOCK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: locks
+        - name: LOCK_DATABASE
+          valueFrom:
+            secretKeyRef:
+              key: database
+              name: locks
+        - name: LOG_LEVEL
+          valueFrom:
+            secretKeyRef:
+              key: log_level
+              name: myapp
+        - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: productimagestore
+              name: myapp
+        - name: QUEUE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: queue
+              name: azure
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              key: dsn
+              name: sentry
+        - name: SENTRY_SAMPLE_RATE
+          valueFrom:
+            secretKeyRef:
+              key: profiling
+              name: sentry
+        - name: STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: azure
+        - name: SNITCH
+          value: xxx8141fec
+        - name: PHP_MEMORY_LIMIT
+          value: 980M
+        image: docker.io/myapp-cli
+        livenessProbe:
+          exec:
+            command:
+            - /app/bin/healthy.php
+            - "60"
+          failureThreshold: 1
+          initialDelaySeconds: 30
+          periodSeconds: 300
+          timeoutSeconds: 30
+        name: daemon
+        resources:
+          limits:
+            memory: 1000Mi
+          requests:
+            cpu: 50m
+            memory: 1000Mi
+      nodeSelector:
+        type: user
+      priorityClassName: myapp-priority-memory
+      restartPolicy: Always
+      serviceAccountName: aks-cluster-identity
+      terminationGracePeriodSeconds: 300
+      tolerations:
+      - effect: NoSchedule
+        key: environment
+        operator: Equal
+        value: production
+status: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    scale-database-requests: "8"
+    scale-maximum: "100"
+    scale-messages-per-pod: "1"
+    scale-minimum: "5"
+    scale-queue-name: cleanup-integrations
+  labels:
+    app: myapp-cleanup-integrations
+    type: daemon
+  name: myapp-cleanup-integrations
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: myapp-cleanup-integrations
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 50%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: myapp-cleanup-integrations
+        azure.workload.identity/use: "true"
+      name: myapp-cleanup-integrations
+    spec:
+      containers:
+      - command:
+        - /app/bin/cleanup-integrations.php
+        env:
+        - name: ALLOW_EXTERNAL_RESOURCES
+          value: "true"
+        - name: ATTRIBUTE_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              key: attributes
+              name: myapp
+        - name: CACHE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: cache
+              name: azure
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: name
+              name: database
+        - name: DATABASE_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: host
+              name: database
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: database
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: database
+        - name: DOCUMENT_STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: documentstore
+        - name: EMAIL_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: email
+              name: myapp
+        - name: ENVIRONMENT
+          valueFrom:
+            secretKeyRef:
+              key: environment
+              name: myapp
+        - name: LOCK_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: hostname
+              name: locks
+        - name: LOCK_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: locks
+        - name: LOCK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: locks
+        - name: LOCK_DATABASE
+          valueFrom:
+            secretKeyRef:
+              key: database
+              name: locks
+        - name: LOG_LEVEL
+          valueFrom:
+            secretKeyRef:
+              key: log_level
+              name: myapp
+        - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: productimagestore
+              name: myapp
+        - name: QUEUE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: queue
+              name: azure
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              key: dsn
+              name: sentry
+        - name: SENTRY_SAMPLE_RATE
+          valueFrom:
+            secretKeyRef:
+              key: profiling
+              name: sentry
+        - name: STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: azure
+        - name: SNITCH
+          value: xxx3336570
+        - name: PHP_MEMORY_LIMIT
+          value: 480M
+        image: docker.io/myapp-cli
+        livenessProbe:
+          exec:
+            command:
+            - /app/bin/healthy.php
+            - "60"
+          failureThreshold: 1
+          initialDelaySeconds: 30
+          periodSeconds: 300
+          timeoutSeconds: 30
+        name: daemon
+        resources:
+          limits:
+            memory: 500Mi
+          requests:
+            cpu: 50m
+            memory: 50Mi
+      nodeSelector:
+        type: user
+      priorityClassName: myapp-priority-core
+      restartPolicy: Always
+      serviceAccountName: aks-cluster-identity
+      terminationGracePeriodSeconds: 30
+      tolerations:
+      - effect: NoSchedule
+        key: environment
+        operator: Equal
+        value: production
+status: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    scale-database-requests: "8"
+    scale-maximum: "100"
+    scale-messages-per-pod: "1000"
+    scale-minimum: "1"
+    scale-queue-name: dismiss-duplicate-messages
+  labels:
+    app: myapp-dismiss-duplicate-messages
+    type: daemon
+  name: myapp-dismiss-duplicate-messages
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myapp-dismiss-duplicate-messages
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 50%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: myapp-dismiss-duplicate-messages
+        azure.workload.identity/use: "true"
+      name: myapp-dismiss-duplicate-messages
+    spec:
+      containers:
+      - command:
+        - /app/bin/dismiss-duplicate-messages.php
+        env:
+        - name: ALLOW_EXTERNAL_RESOURCES
+          value: "true"
+        - name: ATTRIBUTE_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              key: attributes
+              name: myapp
+        - name: CACHE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: cache
+              name: azure
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: name
+              name: database
+        - name: DATABASE_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: host
+              name: database
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: database
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: database
+        - name: DOCUMENT_STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: documentstore
+        - name: EMAIL_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: email
+              name: myapp
+        - name: ENVIRONMENT
+          valueFrom:
+            secretKeyRef:
+              key: environment
+              name: myapp
+        - name: LOCK_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: hostname
+              name: locks
+        - name: LOCK_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: locks
+        - name: LOCK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: locks
+        - name: LOCK_DATABASE
+          valueFrom:
+            secretKeyRef:
+              key: database
+              name: locks
+        - name: LOG_LEVEL
+          valueFrom:
+            secretKeyRef:
+              key: log_level
+              name: myapp
+        - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: productimagestore
+              name: myapp
+        - name: QUEUE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: queue
+              name: azure
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              key: dsn
+              name: sentry
+        - name: SENTRY_SAMPLE_RATE
+          valueFrom:
+            secretKeyRef:
+              key: profiling
+              name: sentry
+        - name: STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: azure
+        - name: SNITCH
+          value: xxx2697c50
+        - name: PHP_MEMORY_LIMIT
+          value: 45M
+        image: docker.io/myapp-cli
+        livenessProbe:
+          exec:
+            command:
+            - /app/bin/healthy.php
+            - "60"
+          failureThreshold: 1
+          initialDelaySeconds: 30
+          periodSeconds: 300
+          timeoutSeconds: 30
+        name: daemon
+        resources:
+          limits:
+            memory: 50Mi
+          requests:
+            cpu: 200m
+            memory: 50Mi
+      nodeSelector:
+        type: user
+      priorityClassName: myapp-priority-core
+      restartPolicy: Always
+      serviceAccountName: aks-cluster-identity
+      terminationGracePeriodSeconds: 30
+      tolerations:
+      - effect: NoSchedule
+        key: environment
+        operator: Equal
+        value: production
+status: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: myapp-web
+  name: myapp-web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: myapp-web
+  strategy:
+    rollingUpdate:
+      maxSurge: 100%
+      maxUnavailable: 0%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: myapp-web
+      name: myapp-web
+    spec:
+      containers:
+      - image: docker.io/myapp-web
+        name: web
+        resources:
+          requests:
+            cpu: 100m
+      nodeSelector:
+        type: user
+      priorityClassName: myapp-priority-web
+      restartPolicy: Always
+      tolerations:
+      - effect: NoSchedule
+        key: environment
+        operator: Equal
+        value: production
+status: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: myapp-fpm
+  name: myapp-fpm
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: myapp-fpm
+  strategy:
+    rollingUpdate:
+      maxSurge: 100%
+      maxUnavailable: 0%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: myapp-fpm
+      name: myapp-fpm
+    spec:
+      containers:
+      - env:
+        - name: ALLOW_EXTERNAL_RESOURCES
+          value: "true"
+        - name: ATTRIBUTE_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              key: attributes
+              name: myapp
+        - name: CACHE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: cache
+              name: azure
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              key: name
+              name: database
+        - name: DATABASE_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              key: host
+              name: database
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: database
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: database
+        - name: DOCUMENT_STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: documentstore
+        - name: EMAIL_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: email
+              name: myapp
+        - name: ENVIRONMENT
+          valueFrom:
+            secretKeyRef:
+              key: environment
+              name: myapp
+        - name: LOG_LEVEL
+          valueFrom:
+            secretKeyRef:
+              key: log_level
+              name: myapp
+        - name: PHP_MEMORY_LIMIT
+          value: 980M
+        - name: QUEUE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: queue
+              name: azure
+        - name: SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              key: dsn
+              name: sentry
+        - name: PHP_SESSION_PATH
+          valueFrom:
+            secretKeyRef:
+              key: session_path
+              name: myapp
+        - name: STORAGE_SETTINGS
+          valueFrom:
+            secretKeyRef:
+              key: storage
+              name: azure
+        image: docker.io/myapp-fpm
+        name: fpm
+        resources:
+          limits:
+            memory: 1000Mi
+          requests:
+            cpu: "1"
+            memory: 500Mi
+      nodeSelector:
+        type: user
+      priorityClassName: myapp-priority-web
+      restartPolicy: Always
+      tolerations:
+      - effect: NoSchedule
+        key: environment
+        operator: Equal
+        value: production
+status: {}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: autoscaler
+spec:
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    metadata:
+      name: autoscaler
+    spec:
+      template:
+        metadata: {}
+        spec:
+          containers:
+          - command:
+            - ./autoscaler
+            env:
+            - name: CLUSTER_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  key: client_id
+                  name: servicebus
+            - name: DATABASE_NAME
+              valueFrom:
+                secretKeyRef:
+                  key: name
+                  name: database
+            - name: DATABASE_HOSTNAME
+              valueFrom:
+                secretKeyRef:
+                  key: host
+                  name: database
+            - name: DATABASE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: username
+                  name: database
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: database
+            - name: ENVIRONMENT
+              valueFrom:
+                secretKeyRef:
+                  key: environment
+                  name: myapp
+            - name: MAXIMUM_REQUESTS
+              valueFrom:
+                secretKeyRef:
+                  key: max_db_requests
+                  name: myapp
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: SERVICE_BUS_SUBSCRIPTION
+              valueFrom:
+                secretKeyRef:
+                  key: subscription
+                  name: servicebus
+            - name: SERVICE_BUS_RESOURCE_GROUP
+              valueFrom:
+                secretKeyRef:
+                  key: resourcegroup
+                  name: servicebus
+            - name: SERVICE_BUS_NAMESPACE
+              valueFrom:
+                secretKeyRef:
+                  key: namespace
+                  name: servicebus
+            - name: SNITCH
+              value: xc6ff02d0e
+            image: docker.io/myapp-autoscaler:1.3.0
+            name: autoscaler
+            resources:
+              limits:
+                memory: 500Mi
+              requests:
+                memory: 50Mi
+          nodeSelector:
+            type: user
+          priorityClassName: myapp-priority-autoscaler
+          restartPolicy: Never
+          terminationGracePeriodSeconds: 1
+          tolerations:
+          - effect: NoSchedule
+            key: environment
+            operator: Equal
+            value: production
+      ttlSecondsAfterFinished: 600
+  schedule: '*/5 * * * *'
+  suspend: false
+status: {}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: task-cleanup-invoices
+spec:
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    metadata:
+      name: task-cleanup-invoices
+    spec:
+      template:
+        metadata: {}
+        spec:
+          containers:
+          - command:
+            - bin/cli.php
+            - data-structures:cleanup-invoices
+            env:
+            - name: ALLOW_EXTERNAL_RESOURCES
+              value: "true"
+            - name: ATTRIBUTE_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: attributes
+                  name: myapp
+            - name: CACHE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: cache
+                  name: azure
+            - name: DATABASE_NAME
+              valueFrom:
+                secretKeyRef:
+                  key: name
+                  name: database
+            - name: DATABASE_HOSTNAME
+              valueFrom:
+                secretKeyRef:
+                  key: host
+                  name: database
+            - name: DATABASE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: username
+                  name: database
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: database
+            - name: DOCUMENT_STORAGE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: storage
+                  name: documentstore
+            - name: EMAIL_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: email
+                  name: myapp
+            - name: ENVIRONMENT
+              valueFrom:
+                secretKeyRef:
+                  key: environment
+                  name: myapp
+            - name: LOG_LEVEL
+              valueFrom:
+                secretKeyRef:
+                  key: log_level
+                  name: myapp
+            - name: PHP_MEMORY_LIMIT
+              value: 490M
+            - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: productimagestore
+                  name: myapp
+            - name: QUEUE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: queue
+                  name: azure
+            - name: SENTRY_DSN
+              valueFrom:
+                secretKeyRef:
+                  key: dsn
+                  name: sentry
+            - name: STORAGE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: storage
+                  name: azure
+            image: docker.io/myapp-cli
+            name: task
+            resources:
+              limits:
+                memory: 500Mi
+              requests:
+                memory: 500Mi
+          nodeSelector:
+            type: user
+          priorityClassName: myapp-priority-task
+          restartPolicy: Never
+          terminationGracePeriodSeconds: 30
+          tolerations:
+          - effect: NoSchedule
+            key: environment
+            operator: Equal
+            value: production
+      ttlSecondsAfterFinished: 3600
+  schedule: 0 3 * * *
+  suspend: false
+status: {}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: task-delayed-integrations
+spec:
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    metadata:
+      name: task-delayed-integrations
+    spec:
+      template:
+        metadata: {}
+        spec:
+          containers:
+          - command:
+            - bin/cli.php
+            - integrations:utilities:delayed-integration-alert
+            env:
+            - name: ALLOW_EXTERNAL_RESOURCES
+              value: "true"
+            - name: ATTRIBUTE_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: attributes
+                  name: myapp
+            - name: CACHE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: cache
+                  name: azure
+            - name: DATABASE_NAME
+              valueFrom:
+                secretKeyRef:
+                  key: name
+                  name: database
+            - name: DATABASE_HOSTNAME
+              valueFrom:
+                secretKeyRef:
+                  key: host
+                  name: database
+            - name: DATABASE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: username
+                  name: database
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: database
+            - name: DOCUMENT_STORAGE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: storage
+                  name: documentstore
+            - name: EMAIL_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: email
+                  name: myapp
+            - name: ENVIRONMENT
+              valueFrom:
+                secretKeyRef:
+                  key: environment
+                  name: myapp
+            - name: LOG_LEVEL
+              valueFrom:
+                secretKeyRef:
+                  key: log_level
+                  name: myapp
+            - name: PHP_MEMORY_LIMIT
+              value: 490M
+            - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: productimagestore
+                  name: myapp
+            - name: QUEUE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: queue
+                  name: azure
+            - name: SENTRY_DSN
+              valueFrom:
+                secretKeyRef:
+                  key: dsn
+                  name: sentry
+            - name: STORAGE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: storage
+                  name: azure
+            image: docker.io/myapp-cli
+            name: task
+            resources:
+              limits:
+                memory: 500Mi
+              requests:
+                memory: 500Mi
+          nodeSelector:
+            type: user
+          priorityClassName: myapp-priority-task
+          restartPolicy: Never
+          terminationGracePeriodSeconds: 30
+          tolerations:
+          - effect: NoSchedule
+            key: environment
+            operator: Equal
+            value: production
+      ttlSecondsAfterFinished: 3600
+  schedule: '*/5 * * * *'
+  suspend: false
+status: {}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: task-dismiss-old-messages
+spec:
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    metadata:
+      name: task-dismiss-old-messages
+    spec:
+      template:
+        metadata: {}
+        spec:
+          containers:
+          - command:
+            - bin/cli.php
+            - file-station:dismiss-old-messages
+            env:
+            - name: ALLOW_EXTERNAL_RESOURCES
+              value: "true"
+            - name: ATTRIBUTE_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: attributes
+                  name: myapp
+            - name: CACHE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: cache
+                  name: azure
+            - name: DATABASE_NAME
+              valueFrom:
+                secretKeyRef:
+                  key: name
+                  name: database
+            - name: DATABASE_HOSTNAME
+              valueFrom:
+                secretKeyRef:
+                  key: host
+                  name: database
+            - name: DATABASE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: username
+                  name: database
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: database
+            - name: DOCUMENT_STORAGE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: storage
+                  name: documentstore
+            - name: EMAIL_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: email
+                  name: myapp
+            - name: ENVIRONMENT
+              valueFrom:
+                secretKeyRef:
+                  key: environment
+                  name: myapp
+            - name: LOG_LEVEL
+              valueFrom:
+                secretKeyRef:
+                  key: log_level
+                  name: myapp
+            - name: PHP_MEMORY_LIMIT
+              value: 490M
+            - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: productimagestore
+                  name: myapp
+            - name: QUEUE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: queue
+                  name: azure
+            - name: SENTRY_DSN
+              valueFrom:
+                secretKeyRef:
+                  key: dsn
+                  name: sentry
+            - name: STORAGE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: storage
+                  name: azure
+            image: docker.io/myapp-cli
+            name: task
+            resources:
+              limits:
+                memory: 500Mi
+              requests:
+                memory: 500Mi
+          nodeSelector:
+            type: user
+          priorityClassName: myapp-priority-task
+          restartPolicy: Never
+          terminationGracePeriodSeconds: 30
+          tolerations:
+          - effect: NoSchedule
+            key: environment
+            operator: Equal
+            value: production
+      ttlSecondsAfterFinished: 3600
+  schedule: 0 1 * * *
+  suspend: false
+status: {}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: task-generate-image-urls
+spec:
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    metadata:
+      name: task-generate-image-urls
+    spec:
+      template:
+        metadata: {}
+        spec:
+          containers:
+          - command:
+            - bin/cli.php
+            - products:generate-image-urls
+            env:
+            - name: ALLOW_EXTERNAL_RESOURCES
+              value: "true"
+            - name: ATTRIBUTE_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: attributes
+                  name: myapp
+            - name: CACHE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: cache
+                  name: azure
+            - name: DATABASE_NAME
+              valueFrom:
+                secretKeyRef:
+                  key: name
+                  name: database
+            - name: DATABASE_HOSTNAME
+              valueFrom:
+                secretKeyRef:
+                  key: host
+                  name: database
+            - name: DATABASE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: username
+                  name: database
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: database
+            - name: DOCUMENT_STORAGE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: storage
+                  name: documentstore
+            - name: EMAIL_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: email
+                  name: myapp
+            - name: ENVIRONMENT
+              valueFrom:
+                secretKeyRef:
+                  key: environment
+                  name: myapp
+            - name: LOG_LEVEL
+              valueFrom:
+                secretKeyRef:
+                  key: log_level
+                  name: myapp
+            - name: PHP_MEMORY_LIMIT
+              value: 490M
+            - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: productimagestore
+                  name: myapp
+            - name: QUEUE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: queue
+                  name: azure
+            - name: SENTRY_DSN
+              valueFrom:
+                secretKeyRef:
+                  key: dsn
+                  name: sentry
+            - name: STORAGE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: storage
+                  name: azure
+            image: docker.io/myapp-cli
+            name: task
+            resources:
+              limits:
+                memory: 500Mi
+              requests:
+                memory: 500Mi
+          nodeSelector:
+            type: user
+          priorityClassName: myapp-priority-task
+          restartPolicy: Never
+          terminationGracePeriodSeconds: 30
+          tolerations:
+          - effect: NoSchedule
+            key: environment
+            operator: Equal
+            value: production
+      ttlSecondsAfterFinished: 3600
+  schedule: 0 0 * * *
+  suspend: false
+status: {}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: task-redact-data
+spec:
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    metadata:
+      name: task-redact-data
+    spec:
+      template:
+        metadata: {}
+        spec:
+          containers:
+          - command:
+            - bin/cli.php
+            - data-structures:redact-data
+            env:
+            - name: ALLOW_EXTERNAL_RESOURCES
+              value: "true"
+            - name: ATTRIBUTE_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: attributes
+                  name: myapp
+            - name: CACHE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: cache
+                  name: azure
+            - name: DATABASE_NAME
+              valueFrom:
+                secretKeyRef:
+                  key: name
+                  name: database
+            - name: DATABASE_HOSTNAME
+              valueFrom:
+                secretKeyRef:
+                  key: host
+                  name: database
+            - name: DATABASE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: username
+                  name: database
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: database
+            - name: DOCUMENT_STORAGE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: storage
+                  name: documentstore
+            - name: EMAIL_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: email
+                  name: myapp
+            - name: ENVIRONMENT
+              valueFrom:
+                secretKeyRef:
+                  key: environment
+                  name: myapp
+            - name: LOG_LEVEL
+              valueFrom:
+                secretKeyRef:
+                  key: log_level
+                  name: myapp
+            - name: PHP_MEMORY_LIMIT
+              value: 490M
+            - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: productimagestore
+                  name: myapp
+            - name: QUEUE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: queue
+                  name: azure
+            - name: SENTRY_DSN
+              valueFrom:
+                secretKeyRef:
+                  key: dsn
+                  name: sentry
+            - name: STORAGE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: storage
+                  name: azure
+            image: docker.io/myapp-cli
+            name: task
+            resources:
+              limits:
+                memory: 500Mi
+              requests:
+                memory: 500Mi
+          nodeSelector:
+            type: user
+          priorityClassName: myapp-priority-task
+          restartPolicy: Never
+          terminationGracePeriodSeconds: 30
+          tolerations:
+          - effect: NoSchedule
+            key: environment
+            operator: Equal
+            value: production
+      ttlSecondsAfterFinished: 3600
+  schedule: 30 0 * * *
+  suspend: false
+status: {}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: task-remote-health-check
+spec:
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    metadata:
+      name: task-remote-health-check
+    spec:
+      template:
+        metadata: {}
+        spec:
+          containers:
+          - command:
+            - bin/cli.php
+            - integrations:utilities:remote-health-check
+            env:
+            - name: ALLOW_EXTERNAL_RESOURCES
+              value: "true"
+            - name: ATTRIBUTE_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: attributes
+                  name: myapp
+            - name: CACHE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: cache
+                  name: azure
+            - name: DATABASE_NAME
+              valueFrom:
+                secretKeyRef:
+                  key: name
+                  name: database
+            - name: DATABASE_HOSTNAME
+              valueFrom:
+                secretKeyRef:
+                  key: host
+                  name: database
+            - name: DATABASE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: username
+                  name: database
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: database
+            - name: DOCUMENT_STORAGE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: storage
+                  name: documentstore
+            - name: EMAIL_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: email
+                  name: myapp
+            - name: ENVIRONMENT
+              valueFrom:
+                secretKeyRef:
+                  key: environment
+                  name: myapp
+            - name: LOG_LEVEL
+              valueFrom:
+                secretKeyRef:
+                  key: log_level
+                  name: myapp
+            - name: PHP_MEMORY_LIMIT
+              value: 490M
+            - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: productimagestore
+                  name: myapp
+            - name: QUEUE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: queue
+                  name: azure
+            - name: SENTRY_DSN
+              valueFrom:
+                secretKeyRef:
+                  key: dsn
+                  name: sentry
+            - name: STORAGE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: storage
+                  name: azure
+            image: docker.io/myapp-cli
+            name: task
+            resources:
+              limits:
+                memory: 500Mi
+              requests:
+                memory: 500Mi
+          nodeSelector:
+            type: user
+          priorityClassName: myapp-priority-task
+          restartPolicy: Never
+          terminationGracePeriodSeconds: 30
+          tolerations:
+          - effect: NoSchedule
+            key: environment
+            operator: Equal
+            value: production
+      ttlSecondsAfterFinished: 3600
+  schedule: '*/5 * * * *'
+  suspend: false
+status: {}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: task-send-notifications
+spec:
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    metadata:
+      name: task-send-notifications
+    spec:
+      template:
+        metadata: {}
+        spec:
+          containers:
+          - command:
+            - bin/cli.php
+            - file-station:send-notifications
+            env:
+            - name: ALLOW_EXTERNAL_RESOURCES
+              value: "true"
+            - name: ATTRIBUTE_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: attributes
+                  name: myapp
+            - name: CACHE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: cache
+                  name: azure
+            - name: DATABASE_NAME
+              valueFrom:
+                secretKeyRef:
+                  key: name
+                  name: database
+            - name: DATABASE_HOSTNAME
+              valueFrom:
+                secretKeyRef:
+                  key: host
+                  name: database
+            - name: DATABASE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: username
+                  name: database
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: database
+            - name: DOCUMENT_STORAGE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: storage
+                  name: documentstore
+            - name: EMAIL_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: email
+                  name: myapp
+            - name: ENVIRONMENT
+              valueFrom:
+                secretKeyRef:
+                  key: environment
+                  name: myapp
+            - name: LOG_LEVEL
+              valueFrom:
+                secretKeyRef:
+                  key: log_level
+                  name: myapp
+            - name: PHP_MEMORY_LIMIT
+              value: 490M
+            - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: productimagestore
+                  name: myapp
+            - name: QUEUE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: queue
+                  name: azure
+            - name: SENTRY_DSN
+              valueFrom:
+                secretKeyRef:
+                  key: dsn
+                  name: sentry
+            - name: STORAGE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: storage
+                  name: azure
+            image: docker.io/myapp-cli
+            name: task
+            resources:
+              limits:
+                memory: 500Mi
+              requests:
+                memory: 500Mi
+          nodeSelector:
+            type: user
+          priorityClassName: myapp-priority-task
+          restartPolicy: Never
+          terminationGracePeriodSeconds: 30
+          tolerations:
+          - effect: NoSchedule
+            key: environment
+            operator: Equal
+            value: production
+      ttlSecondsAfterFinished: 3600
+  schedule: 40 * * * *
+  suspend: false
+status: {}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: task-send-stuck-emails
+spec:
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    metadata:
+      name: task-send-stuck-emails
+    spec:
+      template:
+        metadata: {}
+        spec:
+          containers:
+          - command:
+            - bin/cli.php
+            - file-station:send-stuck-emails
+            env:
+            - name: ALLOW_EXTERNAL_RESOURCES
+              value: "true"
+            - name: ATTRIBUTE_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: attributes
+                  name: myapp
+            - name: CACHE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: cache
+                  name: azure
+            - name: DATABASE_NAME
+              valueFrom:
+                secretKeyRef:
+                  key: name
+                  name: database
+            - name: DATABASE_HOSTNAME
+              valueFrom:
+                secretKeyRef:
+                  key: host
+                  name: database
+            - name: DATABASE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: username
+                  name: database
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: database
+            - name: DOCUMENT_STORAGE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: storage
+                  name: documentstore
+            - name: EMAIL_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: email
+                  name: myapp
+            - name: ENVIRONMENT
+              valueFrom:
+                secretKeyRef:
+                  key: environment
+                  name: myapp
+            - name: LOG_LEVEL
+              valueFrom:
+                secretKeyRef:
+                  key: log_level
+                  name: myapp
+            - name: PHP_MEMORY_LIMIT
+              value: 490M
+            - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: productimagestore
+                  name: myapp
+            - name: QUEUE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: queue
+                  name: azure
+            - name: SENTRY_DSN
+              valueFrom:
+                secretKeyRef:
+                  key: dsn
+                  name: sentry
+            - name: STORAGE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: storage
+                  name: azure
+            image: docker.io/myapp-cli
+            name: task
+            resources:
+              limits:
+                memory: 500Mi
+              requests:
+                memory: 500Mi
+          nodeSelector:
+            type: user
+          priorityClassName: myapp-priority-task
+          restartPolicy: Never
+          terminationGracePeriodSeconds: 30
+          tolerations:
+          - effect: NoSchedule
+            key: environment
+            operator: Equal
+            value: production
+      ttlSecondsAfterFinished: 3600
+  schedule: 0 8-18 * * 1-5
+  suspend: false
+status: {}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: task-send-summary-emails
+spec:
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    metadata:
+      name: task-send-summary-emails
+    spec:
+      template:
+        metadata: {}
+        spec:
+          containers:
+          - command:
+            - bin/cli.php
+            - file-station:send-summary-emails
+            env:
+            - name: ALLOW_EXTERNAL_RESOURCES
+              value: "true"
+            - name: ATTRIBUTE_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: attributes
+                  name: myapp
+            - name: CACHE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: cache
+                  name: azure
+            - name: DATABASE_NAME
+              valueFrom:
+                secretKeyRef:
+                  key: name
+                  name: database
+            - name: DATABASE_HOSTNAME
+              valueFrom:
+                secretKeyRef:
+                  key: host
+                  name: database
+            - name: DATABASE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: username
+                  name: database
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: database
+            - name: DOCUMENT_STORAGE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: storage
+                  name: documentstore
+            - name: EMAIL_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: email
+                  name: myapp
+            - name: ENVIRONMENT
+              valueFrom:
+                secretKeyRef:
+                  key: environment
+                  name: myapp
+            - name: LOG_LEVEL
+              valueFrom:
+                secretKeyRef:
+                  key: log_level
+                  name: myapp
+            - name: PHP_MEMORY_LIMIT
+              value: 490M
+            - name: PRODUCT_IMAGES_FILESYSTEM_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: productimagestore
+                  name: myapp
+            - name: QUEUE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: queue
+                  name: azure
+            - name: SENTRY_DSN
+              valueFrom:
+                secretKeyRef:
+                  key: dsn
+                  name: sentry
+            - name: STORAGE_SETTINGS
+              valueFrom:
+                secretKeyRef:
+                  key: storage
+                  name: azure
+            image: docker.io/myapp-cli
+            name: task
+            resources:
+              limits:
+                memory: 500Mi
+              requests:
+                memory: 500Mi
+          nodeSelector:
+            type: user
+          priorityClassName: myapp-priority-task
+          restartPolicy: Never
+          terminationGracePeriodSeconds: 30
+          tolerations:
+          - effect: NoSchedule
+            key: environment
+            operator: Equal
+            value: production
+      ttlSecondsAfterFinished: 3600
+  schedule: 0 8 * * *
+  suspend: false
+status: {}
