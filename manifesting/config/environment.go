@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/estratocloud/manifesting/internal"
 	corev1 "k8s.io/api/core/v1"
@@ -51,4 +52,18 @@ func (e *Environment) GetEnvVars(wd internal.WorkingDirectoryInterface) (map[str
 	}
 
 	return envvars, nil
+}
+
+func (e *Environment) PerEnvironment(values any) any {
+	v := reflect.ValueOf(values)
+
+	if v.Kind() == reflect.Map && v.Type().Key().Kind() == reflect.String {
+		value := v.MapIndex(reflect.ValueOf(e.Name))
+		if value.IsValid() {
+			return value.Interface()
+		}
+		return nil
+	}
+
+	return values
 }
