@@ -7,6 +7,7 @@ import (
 )
 
 type PathInterface interface {
+	GetPath() string
 	GetFullyQualifiedPath() string
 	Exists() (bool, error)
 	ExistsOrError(message string) error
@@ -18,6 +19,10 @@ type PathInterface interface {
 type Path struct {
 	wd   WorkingDirectoryInterface
 	path string
+}
+
+func (p *Path) GetPath() string {
+	return p.path
 }
 
 func (p *Path) GetFullyQualifiedPath() string {

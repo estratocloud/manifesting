@@ -6,12 +6,20 @@ import (
 
 type Path struct {
 	Path                      string
+	GetPathFunc               func() string
 	GetFullyQualifiedPathFunc func() string
 	ExistsFunc                func() (bool, error)
 	ExistsOrErrorFunc         func(string) error
 	OpenFunc                  func() (*os.File, error)
 	ReadFileFunc              func() ([]byte, error)
 	WriteFileFunc             func([]byte) error
+}
+
+func (p *Path) GetPath() string {
+	if p.GetPathFunc != nil {
+		return p.GetPathFunc()
+	}
+	return p.Path
 }
 
 func (p *Path) GetFullyQualifiedPath() string {
