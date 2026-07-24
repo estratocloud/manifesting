@@ -56,7 +56,7 @@ jobs:
       - name: Upload release artifact
         uses: actions/upload-artifact@v7
         with:
-          name: bin-${{ matrix.os }}-${{ matrix.arch }}
+          name: manifesting-${{ matrix.os }}-${{ matrix.arch }}
           path: bin/*
 
   docker-images:
@@ -82,7 +82,7 @@ jobs:
       - name: Download binary
         uses: actions/download-artifact@v8
         with:
-          name: bin-linux-${{ matrix.arch }}
+          name: manifesting-linux-${{ matrix.arch }}
 
       - name: Create Docker Image
         run: |
@@ -127,7 +127,7 @@ jobs:
       - name: Download release artifacts
         uses: actions/download-artifact@v7
         with:
-          pattern: bin-*
+          pattern: manifesting-*
           merge-multiple: true
           path: bin
 
