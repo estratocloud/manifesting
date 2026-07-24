@@ -41,7 +41,7 @@ func Run() error {
 }
 
 func printProgramIntro() {
-	fmt.Println("🧘️ Manifesting 🪄")
+	fmt.Println("🧘️ Manifesting", manifesting.Version, "🪄")
 	fmt.Println()
 
 	fmt.Println("©️  2026 Estrato Cloud Ltd")
