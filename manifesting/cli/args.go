@@ -9,13 +9,15 @@ import (
 )
 
 type Args struct {
-	configPath       internal.PathInterface
-	workingDirectory internal.WorkingDirectoryInterface
+	configPath         internal.PathInterface
+	generatedDirectory internal.PathInterface
+	workingDirectory   internal.WorkingDirectoryInterface
 }
 
 type inputArgs struct {
-	configPath       string
-	workingDirectory string
+	configPath         string
+	generatedDirectory string
+	workingDirectory   string
 }
 
 func GetArgs(argv []string) (*Args, error) {
@@ -34,13 +36,15 @@ func defineArgs(argv []string) *inputArgs {
 	flags := flag.NewFlagSet("Manifesting", flag.ExitOnError)
 
 	configPath := flags.String("config", "", "The location of the manifesting config file")
+	generatedDirectory := flags.String("generated-dir", "", "The location to write generated manifests to")
 	workingDirectory := flags.String("working-dir", "", "Run as if manifesting was started in this path")
 
 	_ = flags.Parse(argv)
 
 	return &inputArgs{
-		configPath:       *configPath,
-		workingDirectory: *workingDirectory,
+		configPath:         *configPath,
+		generatedDirectory: *generatedDirectory,
+		workingDirectory:   *workingDirectory,
 	}
 }
 
@@ -70,6 +74,11 @@ func validateArgs(input *inputArgs) (*Args, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if input.generatedDirectory == "" {
+		input.generatedDirectory = ".generated"
+	}
+	args.generatedDirectory = args.workingDirectory.NewPath(input.generatedDirectory)
 
 	return args, nil
 }

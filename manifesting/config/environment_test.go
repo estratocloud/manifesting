@@ -26,7 +26,7 @@ func Test_GetOutputPath1(t *testing.T) {
 	err = yaml.Unmarshal(data, &conf)
 	require.NoError(t, err)
 
-	got := conf.Environments[0].GetOutputPath(wd).GetFullyQualifiedPath()
+	got := conf.Environments[0].GetOutputPath(wd.NewPath("gd"), wd).GetFullyQualifiedPath()
 	assert.Equal(t, "/tmp/.generated/production.yaml", got)
 }
 
@@ -42,8 +42,8 @@ func Test_GetOutputPath2(t *testing.T) {
 	err = yaml.Unmarshal(data, &conf)
 	require.NoError(t, err)
 
-	got := conf.Environments[0].GetOutputPath(wd).GetFullyQualifiedPath()
-	assert.Equal(t, "/tmp/.generated/nonprod.yaml", got)
+	got := conf.Environments[0].GetOutputPath(wd.NewPath("gd"), wd).GetFullyQualifiedPath()
+	assert.Equal(t, "/tmp/gd/nonprod.yaml", got)
 }
 
 // GetEnvVars Ensure we get an empty map if there is no envFrom defined

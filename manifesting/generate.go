@@ -8,14 +8,14 @@ import (
 	"github.com/estratocloud/manifesting/manifesting/templates"
 )
 
-func GenerateManifest(environment *config.Environment, conf *config.Config, wd internal.WorkingDirectoryInterface) error {
+func GenerateManifest(environment *config.Environment, conf *config.Config, wd internal.WorkingDirectoryInterface, gd internal.PathInterface) error {
 
 	envvars, err := environment.GetEnvVars(wd)
 	if err != nil {
 		return err
 	}
 
-	output := generation.NewGeneratedFile(environment.GetOutputPath(wd))
+	output := generation.NewGeneratedFile(environment.GetOutputPath(gd, wd))
 	for _, resource := range conf.GetResources(environment) {
 		template, err := templates.NewTemplate(resource, environment, wd)
 		if err != nil {
