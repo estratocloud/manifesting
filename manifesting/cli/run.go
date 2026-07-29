@@ -30,7 +30,7 @@ func Run() error {
 
 	for _, environment := range conf.Environments {
 		printEnvironmentDetails(args, environment)
-		err := manifesting.GenerateManifest(environment, &conf, args.workingDirectory)
+		err := manifesting.GenerateManifest(environment, &conf, args.workingDirectory, args.generatedDirectory)
 		if err != nil {
 			return err
 		}
@@ -56,7 +56,7 @@ func printConfig(args *Args) {
 func printEnvironmentDetails(args *Args, environment *config.Environment) {
 	fmt.Println("Generating manifest for...")
 	fmt.Println("\tEnvironment:", environment.Name)
-	fmt.Println("\tFile Path:  ", environment.GetOutputPath(args.workingDirectory).GetPath())
+	fmt.Println("\tFile Path:  ", environment.GetOutputPath(args.workingDirectory, args.generatedDirectory).GetPath())
 	if environment.EnvFrom != "" {
 		fmt.Println("\tEnv Vars:   ", environment.EnvFrom)
 	}

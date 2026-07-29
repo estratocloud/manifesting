@@ -9,13 +9,15 @@ import (
 )
 
 type Args struct {
-	configPath       internal.PathInterface
-	workingDirectory internal.WorkingDirectoryInterface
+	configPath         internal.PathInterface
+	workingDirectory   internal.WorkingDirectoryInterface
+	generatedDirectory internal.GeneratedDirectoryInterface
 }
 
 type inputArgs struct {
-	configPath       string
-	workingDirectory string
+	configPath         string
+	workingDirectory   string
+	generatedDirectory string
 }
 
 func GetArgs(argv []string) (*Args, error) {
@@ -35,12 +37,14 @@ func defineArgs(argv []string) *inputArgs {
 
 	configPath := flags.String("config", "", "The location of the manifesting config file")
 	workingDirectory := flags.String("working-dir", "", "Run as if manifesting was started in this path")
+	generatedDirectory := flags.String("generated-dir", "", "Default location of the generated files")
 
 	_ = flags.Parse(argv)
 
 	return &inputArgs{
-		configPath:       *configPath,
-		workingDirectory: *workingDirectory,
+		configPath:         *configPath,
+		workingDirectory:   *workingDirectory,
+		generatedDirectory: *generatedDirectory,
 	}
 }
 
@@ -60,6 +64,12 @@ func validateArgs(input *inputArgs) (*Args, error) {
 	args.workingDirectory, err = internal.NewWorkingDirectory(workingDirectory)
 	if err != nil {
 		return nil, fmt.Errorf("unable to use the --working-dir '%s': %w", workingDirectory, err)
+	}
+
+	generatedDirectory := input.generatedDirectory
+	args.generatedDirectory, err = internal.NewGeneratedDirectory(generatedDirectory)
+	if err != nil {
+		return nil, fmt.Errorf("unable to use the --generated-dir '%s': %w", generatedDirectory, err)
 	}
 
 	if input.configPath == "" {
