@@ -17,7 +17,7 @@ myapp/
 │   └── nonprod.yaml
 ```
 
-The `templates` directory contains your manifest templates, the `manifesting.yaml` is the configuration that controls what is generated, and the `.generated` directory contains the produced manifests.
+The `templates` directory contains your manifest templates, the [manifesting.yaml](config) is the configuration that controls what is generated, and the `.generated` directory contains the produced manifests.
 
 We recommend committing the `.generated/` files to source control, and then using CI/CD to regenerate them whenever the templates are changed, that way you can always see exactly what the impact of a particular change is.
 
