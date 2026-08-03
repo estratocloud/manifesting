@@ -76,7 +76,7 @@ spec:
             {{- end}}
             {{- end}}
             - name: PHP_MEMORY_LIMIT
-              {{$limit := perEnvironment .Memory.Limit | toInt}}
+              {{$limit := perEnvironment .Memory.Limit 0 | toInt}}
               {{$reduction := min (div $limit 10) 20}}
               value: "{{sub $limit $reduction}}M"
           livenessProbe:
@@ -94,7 +94,7 @@ spec:
               memory: 0
               {{end}}
             limits:
-              memory: {{with .Memory.Limit}} {{perEnvironment .}}Mi {{else}} 0 {{end}}
+              memory: {{with .Memory.Limit}} {{perEnvironment . 0}}Mi {{else}} 0 {{end}}
       nodeSelector:
         type: user
       priorityClassName: myapp-priority-{{.Priority}}

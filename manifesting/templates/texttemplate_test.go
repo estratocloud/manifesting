@@ -48,7 +48,7 @@ func Test_getTextTemplate3(t *testing.T) {
 // getTextTemplate Ensure we can use the perEnvironment function
 func Test_getTextTemplate4(t *testing.T) {
 	environemnt := &config.Environment{Name: "nonprod"}
-	tmpl, err := getTextTemplate([]byte("debug = {{ perEnvironment .Debug }}"), environemnt)
+	tmpl, err := getTextTemplate([]byte("debug = {{ perEnvironment .Debug -1 }}"), environemnt)
 	require.NoError(t, err)
 
 	var got bytes.Buffer
