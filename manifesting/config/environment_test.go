@@ -154,7 +154,7 @@ func Test_PerEnvironment1(t *testing.T) {
 	got := environment.PerEnvironment(map[string]any{
 		"production": 1,
 		"nonprod":    0,
-	})
+	}, -1)
 	assert.Equal(t, 1, got)
 }
 
@@ -163,11 +163,11 @@ func Test_PerEnvironment2(t *testing.T) {
 
 	environment := &Environment{Name: "production"}
 
-	got := environment.PerEnvironment("same-for-all-environments")
+	got := environment.PerEnvironment("same-for-all-environments", "")
 	assert.Equal(t, "same-for-all-environments", got)
 }
 
-// PerEnvironment If there's no value for this environment then return nil
+// PerEnvironment If there's no value for this environment then return the default
 func Test_PerEnvironment3(t *testing.T) {
 
 	environment := &Environment{Name: "ringo"}
@@ -176,6 +176,6 @@ func Test_PerEnvironment3(t *testing.T) {
 		"john":   1,
 		"paul":   2,
 		"george": 3,
-	})
-	assert.Equal(t, nil, got)
+	}, -1)
+	assert.Equal(t, -1, got)
 }
