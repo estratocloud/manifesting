@@ -46,6 +46,22 @@ func Test_GetOutputPath2(t *testing.T) {
 	assert.Equal(t, "/tmp/gd/nonprod.yaml", got)
 }
 
+// GetOutputPath Ensure an empty generated directory doesn't try to write to root
+func Test_GetOutputPath3(t *testing.T) {
+
+	wd, err := internal.NewWorkingDirectory("/tmp")
+	require.NoError(t, err)
+
+	var conf Config
+	data := []byte(`environments:
+  - name: "nonprod"`)
+	err = yaml.Unmarshal(data, &conf)
+	require.NoError(t, err)
+
+	got := conf.Environments[0].GetOutputPath(wd.NewPath(""), wd).GetFullyQualifiedPath()
+	assert.Equal(t, "/tmp/nonprod.yaml", got)
+}
+
 // GetEnvVars Ensure we get an empty map if there is no envFrom defined
 func Test_GetEnvVars1(t *testing.T) {
 
