@@ -36,7 +36,7 @@ func defineArgs(argv []string) *inputArgs {
 	flags := flag.NewFlagSet("Manifesting", flag.ExitOnError)
 
 	configPath := flags.String("config", "", "The location of the manifesting config file")
-	generatedDirectory := flags.String("generated-dir", "", "The location to write generated manifests to")
+	generatedDirectory := flags.String("generated-dir", ".generated", "The location to write generated manifests to")
 	workingDirectory := flags.String("working-dir", "", "Run as if manifesting was started in this path")
 
 	_ = flags.Parse(argv)
@@ -75,9 +75,6 @@ func validateArgs(input *inputArgs) (*Args, error) {
 		return nil, err
 	}
 
-	if input.generatedDirectory == "" {
-		input.generatedDirectory = ".generated"
-	}
 	args.generatedDirectory = args.workingDirectory.NewPath(input.generatedDirectory)
 
 	return args, nil

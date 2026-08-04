@@ -40,3 +40,32 @@ func Test_GetArgs4(t *testing.T) {
 	assert.Nil(t, got)
 	assert.EqualError(t, err, "unable to use the --working-dir '/does-not-exist': stat /does-not-exist: no such file or directory")
 }
+
+// GetArgs Ensure the generated directory passed is used
+func Test_GetArgs5(t *testing.T) {
+	args, err := GetArgs([]string{
+		"--generated-dir=.my-generated-dir",
+		"--working-dir=/app/tests/samples/config",
+	})
+	require.NoError(t, err)
+	assert.Equal(t, ".my-generated-dir", args.generatedDirectory.GetPath())
+}
+
+// GetArgs Ensure the generated directory can be passed as empty
+func Test_GetArgs6(t *testing.T) {
+	args, err := GetArgs([]string{
+		"--generated-dir=",
+		"--working-dir=/app/tests/samples/config",
+	})
+	require.NoError(t, err)
+	assert.Equal(t, "", args.generatedDirectory.GetPath())
+}
+
+// GetArgs Ensure the generated directory defaults to .generated if the flag isn't supplied
+func Test_GetArgs7(t *testing.T) {
+	args, err := GetArgs([]string{
+		"--working-dir=/app/tests/samples/config",
+	})
+	require.NoError(t, err)
+	assert.Equal(t, ".generated", args.generatedDirectory.GetPath())
+}

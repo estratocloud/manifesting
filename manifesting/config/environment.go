@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"path/filepath"
 	"reflect"
 
 	"github.com/estratocloud/manifesting/internal"
@@ -17,7 +18,7 @@ type Environment struct {
 
 func (e *Environment) GetOutputPath(gd internal.PathInterface, wd internal.WorkingDirectoryInterface) internal.PathInterface {
 	if e.Output == "" {
-		return wd.NewPath(fmt.Sprintf("%s/%s.yaml", gd.GetPath(), e.Name))
+		return wd.NewPath(filepath.Join(gd.GetPath(), e.Name+".yaml"))
 	}
 	return wd.NewPath(e.Output)
 }
