@@ -30,7 +30,7 @@ func Run() error {
 
 	for _, environment := range conf.Environments {
 		printEnvironmentDetails(args, environment)
-		err := manifesting.GenerateManifest(environment, &conf, args.workingDirectory, args.generatedDirectory)
+		err := manifesting.GenerateManifest(environment, &conf, args.generatedDirectory, args.workingDirectory)
 		if err != nil {
 			return err
 		}

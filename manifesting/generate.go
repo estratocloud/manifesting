@@ -8,7 +8,7 @@ import (
 	"github.com/estratocloud/manifesting/manifesting/templates"
 )
 
-func GenerateManifest(environment *config.Environment, conf *config.Config, wd internal.WorkingDirectoryInterface, gd internal.PathInterface) error {
+func GenerateManifest(environment *config.Environment, conf *config.Config, gd internal.PathInterface, wd internal.WorkingDirectoryInterface) error {
 
 	envvars, err := environment.GetEnvVars(wd)
 	if err != nil {
