@@ -38,3 +38,6 @@ jobs:
 
       - name: End To End Test
         run: docker exec manifesting ./tests/end-to-end/run.sh
+
+      - name: Static Analysis
+        run: docker exec manifesting golangci-lint run
