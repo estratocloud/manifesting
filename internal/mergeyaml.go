@@ -56,7 +56,27 @@ func merge(base any, override any) any {
 
 		result := make([]any, 0, len(t)+len(overrideSlice))
 		result = append(result, t...)
-		result = append(result, overrideSlice...)
+
+		listNames := make(map[string]int, len(t))
+		for i, item := range t {
+			if mapItem, ok := item.(map[string]any); ok {
+				if name, ok := mapItem["name"].(string); ok {
+					listNames[name] = i
+				}
+			}
+		}
+		for _, item := range overrideSlice {
+			if mapItem, ok := item.(map[string]any); ok {
+				if name, ok := mapItem["name"].(string); ok {
+					if nameIndex, ok := listNames[name]; ok {
+						result[nameIndex] = merge(result[nameIndex], item)
+						continue
+					}
+				}
+			}
+			result = append(result, item)
+		}
+
 		return result
 
 	default:
