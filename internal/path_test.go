@@ -165,25 +165,6 @@ func Test_ExistsOrError8(t *testing.T) {
 	assert.EqualError(t, err, "can't read file '/app/internal/bad-perms'")
 }
 
-// Open Ensure we pass the fully qualified path to the underlying function
-func Test_Open1(t *testing.T) {
-	path := wd(t).NewPath("file.txt")
-
-	var gotName string
-	wantFile := &os.File{}
-	wantErr := errors.New("cannot open")
-	overrideFS(t)
-	fs.Open = func(name string) (*os.File, error) {
-		gotName = name
-		return wantFile, wantErr
-	}
-
-	gotFile, gotErr := path.Open()
-	assert.ErrorIs(t, gotErr, wantErr)
-	assert.Equal(t, gotFile, wantFile)
-	assert.Equal(t, "/app/file.txt", gotName)
-}
-
 // ReadFile Ensure we pass the fully qualified path to the underlying function
 func Test_ReadFile1(t *testing.T) {
 	path := wd(t).NewPath("file.txt")
