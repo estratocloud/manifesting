@@ -107,3 +107,49 @@ func Test_MergeYAML5(t *testing.T) {
 	assert.Equal(t, empty, got)
 	assert.EqualError(t, err, "unable to parse the template yaml: yaml: found unexpected end of stream")
 }
+
+// MergeYAML Ensure we can merge lists of objects with a 'name' property
+func Test_MergeYAML6(t *testing.T) {
+	assertMerge(t, `
+env:
+    - name: one
+      value: base1
+    - name: two
+      value: base2
+    - name: three
+      value: base3
+`, `
+env:
+    - name: two
+      value: override2
+    - name: four
+      value: override4
+`, `
+env:
+    - name: one
+      value: base1
+    - name: two
+      value: override2
+    - name: three
+      value: base3
+    - name: four
+      value: override4
+`)
+}
+
+// MergeYAML Ensure we can merge simple lists of strings
+func Test_MergeYAML7(t *testing.T) {
+	assertMerge(t, `
+env:
+    - one
+    - two
+`, `
+env:
+    - three
+`, `
+env:
+    - one
+    - two
+    - three
+`)
+}
