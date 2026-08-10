@@ -2,7 +2,6 @@ package templates
 
 import (
 	"errors"
-	"os"
 	"testing"
 
 	"github.com/estratocloud/manifesting/internal"
@@ -82,7 +81,7 @@ func Test_readTemplate7(t *testing.T) {
 	assert.EqualError(t, err, "unable to check if template file (file.yaml) exists: internal problem")
 }
 
-// readTemplate Ensure errors from path.Open() are passed along
+// readTemplate Ensure errors from path.ReadFile() are passed along
 func Test_readTemplate8(t *testing.T) {
 	wd := &mocks.WorkingDirectory{
 		NewPathFunc: func(path string) internal.PathInterface {
@@ -91,14 +90,12 @@ func Test_readTemplate8(t *testing.T) {
 				ExistsFunc: func() (bool, error) {
 					return true, nil
 				},
-				OpenFunc: func() (*os.File, error) {
-					return nil, errors.New("cannot open")
-				},
+				ReadFileFunc: func() ([]byte, error) { return nil, errors.New("cannot read") },
 			}
 		},
 	}
 	doc1, doc2, err := readTemplate("file.yaml", wd)
 	assert.Nil(t, doc1)
 	assert.Nil(t, doc2)
-	assert.EqualError(t, err, "unable to open template file (file.yaml): cannot open")
+	assert.EqualError(t, err, "unable to read template file (file.yaml): cannot read")
 }

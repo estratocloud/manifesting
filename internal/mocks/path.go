@@ -1,16 +1,11 @@
 package mocks
 
-import (
-	"os"
-)
-
 type Path struct {
 	Path                      string
 	GetPathFunc               func() string
 	GetFullyQualifiedPathFunc func() string
 	ExistsFunc                func() (bool, error)
 	ExistsOrErrorFunc         func(string) error
-	OpenFunc                  func() (*os.File, error)
 	ReadFileFunc              func() ([]byte, error)
 	WriteFileFunc             func([]byte) error
 }
@@ -41,13 +36,6 @@ func (p *Path) ExistsOrError(message string) error {
 		return p.ExistsOrErrorFunc(message)
 	}
 	return nil
-}
-
-func (p *Path) Open() (*os.File, error) {
-	if p.OpenFunc != nil {
-		return p.OpenFunc()
-	}
-	return nil, nil
 }
 
 func (p *Path) ReadFile() ([]byte, error) {

@@ -11,7 +11,6 @@ type PathInterface interface {
 	GetFullyQualifiedPath() string
 	Exists() (bool, error)
 	ExistsOrError(message string) error
-	Open() (*os.File, error)
 	ReadFile() ([]byte, error)
 	WriteFile(data []byte) error
 }
@@ -62,10 +61,6 @@ func (p *Path) ExistsOrError(message string) error {
 	}
 
 	return nil
-}
-
-func (p *Path) Open() (*os.File, error) {
-	return fs.Open(p.GetFullyQualifiedPath())
 }
 
 func (p *Path) ReadFile() ([]byte, error) {
