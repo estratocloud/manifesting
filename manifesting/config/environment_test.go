@@ -195,3 +195,12 @@ func Test_PerEnvironment3(t *testing.T) {
 	}, -1)
 	assert.Equal(t, -1, got)
 }
+
+// PerEnvironment If there's no value for this var at all then return the default
+func Test_PerEnvironment4(t *testing.T) {
+
+	environment := &Environment{Name: "production"}
+
+	got := environment.PerEnvironment(nil, -1)
+	assert.Equal(t, -1, got)
+}

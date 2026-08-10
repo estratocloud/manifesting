@@ -13,6 +13,7 @@ import (
 )
 
 type Template struct {
+	Resource string
 	Extends  string
 	Template *text.Template
 }
@@ -34,6 +35,8 @@ func NewTemplate(resource *config.Resource, environment *config.Environment, wd 
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse the template '%s': %w", resource.Template, err)
 	}
+
+	template.Resource = resource.Name
 
 	return &template, nil
 }
@@ -71,5 +74,9 @@ func (t *Template) Render(vars map[string]any, environment *config.Environment, 
 		}
 	}
 
-	return kubernetes.GetObject(content)
+	object, err := kubernetes.GetObject(content)
+	if err != nil {
+		return nil, fmt.Errorf("invalid generated manifest for resource '%s': %w", t.Resource, err)
+	}
+	return object, nil
 }

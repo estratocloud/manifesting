@@ -56,8 +56,11 @@ func (e *Environment) GetEnvVars(wd internal.WorkingDirectoryInterface) (map[str
 }
 
 func (e *Environment) PerEnvironment(values any, defaultValue any) any {
-	v := reflect.ValueOf(values)
+	if values == nil {
+		return defaultValue
+	}
 
+	v := reflect.ValueOf(values)
 	if v.Kind() == reflect.Map && v.Type().Key().Kind() == reflect.String {
 		value := v.MapIndex(reflect.ValueOf(e.Name))
 		if value.IsValid() {

@@ -2,6 +2,7 @@ package templates
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -25,13 +26,11 @@ func readTemplate(filename string, wd internal.WorkingDirectoryInterface) ([]byt
 		}
 	}
 
-	f, err := path.Open()
+	data, err := path.ReadFile()
 	if err != nil {
-		return nil, nil, fmt.Errorf("unable to open template file (%s): %w", path.GetFullyQualifiedPath(), err)
+		return nil, nil, fmt.Errorf("unable to read template file (%s): %w", path.GetFullyQualifiedPath(), err)
 	}
-	defer f.Close()
-
-	yamlDecoder := yaml.NewYAMLReader(bufio.NewReader(f))
+	yamlDecoder := yaml.NewYAMLReader(bufio.NewReader(bytes.NewReader(data)))
 
 	doc1, err := yamlDecoder.Read()
 	if err != nil {
