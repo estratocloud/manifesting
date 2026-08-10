@@ -71,3 +71,15 @@ func Test_Render2(t *testing.T) {
 		},
 	}, got)
 }
+
+// Ensure we get a clear error if the resulting template is available k8s yaml
+func Test_Render3(t *testing.T) {
+	wd := newWorkingDirectory(t)
+	resource := &config.Resource{Name: "my-daemon", Template: "with-variable"}
+	template, err := NewTemplate(resource, nil, wd)
+	require.NoError(t, err)
+
+	got, err := template.Render(map[string]any{}, nil, wd)
+	assert.Nil(t, got)
+	assert.EqualError(t, err, "invalid generated manifest for resource 'my-daemon': json: cannot unmarshal string into Go struct field DeploymentSpec.spec.replicas of type int32")
+}
