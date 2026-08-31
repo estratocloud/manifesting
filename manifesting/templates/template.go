@@ -70,7 +70,7 @@ func (t *Template) Render(vars map[string]any, environment *config.Environment, 
 
 		content, err = internal.MergeYAML(baseBuffer.Bytes(), content)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to merge the templates for resource '%s': %w", t.Resource, err)
 		}
 	}
 
