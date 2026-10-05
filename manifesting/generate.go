@@ -32,6 +32,7 @@ func GenerateManifest(environment *config.Environment, conf *config.Config, gd i
 			return err
 		}
 		kubernetes.SetEnvironmentVariableDefaults(object, envvars)
+		kubernetes.SetEnvironmentVariablesFromSecretsStore(object, resource.EnvFrom)
 
 		err = output.AppendObject(object)
 		if err != nil {
