@@ -28,7 +28,7 @@ jobs:
       - name: Coding Standards
         run: |
           docker exec manifesting goimports -d -e .
-          docker exec manifesting test -z "$(goimports -l .)"
+          docker exec manifesting sh -c 'test -z "$(goimports -l .)"'
 
       - name: Check Dependencies
         run: docker exec manifesting go mod download
