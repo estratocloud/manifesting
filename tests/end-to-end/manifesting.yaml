@@ -4,7 +4,7 @@ environments:
     defaultEnvVarsFile: "templates/envvars.yaml"
   - name: "nonprod"
     output: ".generated/nonprod.yaml"
-    envFrom: "templates/envvars.yaml"
+    defaultEnvVarsFile: "templates/envvars.yaml"
 
 vars:
   Priority: "core"

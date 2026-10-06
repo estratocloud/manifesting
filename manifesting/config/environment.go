@@ -14,7 +14,6 @@ import (
 type Environment struct {
 	Name               string `yaml:"name"`
 	Output             string `yaml:"output"`
-	EnvFrom            string `yaml:"envFrom"`
 	DefaultEnvVarsFile string `yaml:"defaultEnvVarsFile"`
 }
 
@@ -29,34 +28,24 @@ func (e *Environment) GetEnvVars(wd internal.WorkingDirectoryInterface, d *depre
 
 	envvars := map[string]corev1.EnvVar{}
 
-	defaultEnvVarsFile := e.DefaultEnvVarsFile
-
-	if e.EnvFrom != "" {
-		err := d.IsError("Using envFrom for default environment variables has been replaced with defaultEnvVarsFile")
-		if err != nil {
-			return nil, err
-		}
-		defaultEnvVarsFile = e.EnvFrom
-	}
-
-	if defaultEnvVarsFile == "" {
+	if e.DefaultEnvVarsFile == "" {
 		return envvars, nil
 	}
 
-	path := wd.NewPath(defaultEnvVarsFile)
-	err := path.ExistsOrError(fmt.Sprintf("unable to find the envFrom file for %s at '%%s'", e.Name))
+	path := wd.NewPath(e.DefaultEnvVarsFile)
+	err := path.ExistsOrError(fmt.Sprintf("unable to find the defaultEnvVarsFile file for %s at '%%s'", e.Name))
 	if err != nil {
 		return nil, err
 	}
 
 	data, err := path.ReadFile()
 	if err != nil {
-		return nil, fmt.Errorf("unable to read the envFrom file for %s at '%s': %w", e.Name, path.GetFullyQualifiedPath(), err)
+		return nil, fmt.Errorf("unable to read the defaultEnvVarsFile file for %s at '%s': %w", e.Name, path.GetFullyQualifiedPath(), err)
 	}
 
 	var objects []corev1.EnvVar
 	if err := yaml.Unmarshal(data, &objects); err != nil {
-		return nil, fmt.Errorf("unable to parse the envFrom file for %s at '%s': %w", e.Name, path.GetFullyQualifiedPath(), err)
+		return nil, fmt.Errorf("unable to parse the defaultEnvVarsFile file for %s at '%s': %w", e.Name, path.GetFullyQualifiedPath(), err)
 	}
 
 	envvars = make(map[string]corev1.EnvVar, len(objects))
