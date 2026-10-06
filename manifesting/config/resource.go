@@ -8,8 +8,14 @@ import (
 type Resource struct {
 	Name         string         `yaml:"name"`
 	Template     string         `yaml:"template"`
+	EnvFrom      []EnvFrom      `yaml:"envFrom"`
 	Environments []string       `yaml:"environments"`
 	Vars         map[string]any `yaml:"vars"`
+}
+
+type EnvFrom struct {
+	SecretRef           string `yaml:"secretRef"`
+	SecretProviderClass string `yaml:"secretProviderClass"`
 }
 
 func (r *Resource) GetVars(environment *Environment, config *Config) (map[string]any, error) {
