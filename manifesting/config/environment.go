@@ -6,14 +6,16 @@ import (
 	"reflect"
 
 	"github.com/estratocloud/manifesting/internal"
+	"github.com/estratocloud/manifesting/internal/deprecations"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/yaml"
 )
 
 type Environment struct {
-	Name    string `yaml:"name"`
-	Output  string `yaml:"output"`
-	EnvFrom string `yaml:"envFrom"`
+	Name               string `yaml:"name"`
+	Output             string `yaml:"output"`
+	EnvFrom            string `yaml:"envFrom"`
+	DefaultEnvVarsFile string `yaml:"defaultEnvVarsFile"`
 }
 
 func (e *Environment) GetOutputPath(gd internal.PathInterface, wd internal.WorkingDirectoryInterface) internal.PathInterface {
@@ -23,15 +25,25 @@ func (e *Environment) GetOutputPath(gd internal.PathInterface, wd internal.Worki
 	return wd.NewPath(e.Output)
 }
 
-func (e *Environment) GetEnvVars(wd internal.WorkingDirectoryInterface) (map[string]corev1.EnvVar, error) {
+func (e *Environment) GetEnvVars(wd internal.WorkingDirectoryInterface, d *deprecations.Checker) (map[string]corev1.EnvVar, error) {
 
 	envvars := map[string]corev1.EnvVar{}
 
-	if e.EnvFrom == "" {
+	defaultEnvVarsFile := e.DefaultEnvVarsFile
+
+	if e.EnvFrom != "" {
+		err := d.IsError("Using envFrom for default environment variables has been replaced with defaultEnvVarsFile")
+		if err != nil {
+			return nil, err
+		}
+		defaultEnvVarsFile = e.EnvFrom
+	}
+
+	if defaultEnvVarsFile == "" {
 		return envvars, nil
 	}
 
-	path := wd.NewPath(e.EnvFrom)
+	path := wd.NewPath(defaultEnvVarsFile)
 	err := path.ExistsOrError(fmt.Sprintf("unable to find the envFrom file for %s at '%%s'", e.Name))
 	if err != nil {
 		return nil, err

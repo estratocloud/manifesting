@@ -6,6 +6,7 @@ import (
 	"errors"
 
 	"github.com/estratocloud/manifesting/internal"
+	"github.com/estratocloud/manifesting/internal/deprecations"
 	"github.com/estratocloud/manifesting/internal/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -75,7 +76,7 @@ func Test_GetEnvVars1(t *testing.T) {
 	err = yaml.Unmarshal(data, &conf)
 	require.NoError(t, err)
 
-	got, err := conf.Environments[0].GetEnvVars(wd)
+	got, err := conf.Environments[0].GetEnvVars(wd, deprecations.New(false))
 	require.NoError(t, err)
 	assert.Equal(t, map[string]corev1.EnvVar{
 		"CONFIG_KEY_1": {Name: "CONFIG_KEY_1", Value: "value1"},
@@ -95,7 +96,7 @@ func Test_GetEnvVars2(t *testing.T) {
 	err = yaml.Unmarshal(data, &conf)
 	require.NoError(t, err)
 
-	got, err := conf.Environments[0].GetEnvVars(wd)
+	got, err := conf.Environments[0].GetEnvVars(wd, deprecations.New(false))
 	require.NoError(t, err)
 	assert.Equal(t, map[string]corev1.EnvVar{}, got)
 }
@@ -113,7 +114,7 @@ func Test_GetEnvVars3(t *testing.T) {
 	err = yaml.Unmarshal(data, &conf)
 	require.NoError(t, err)
 
-	got, err := conf.Environments[0].GetEnvVars(wd)
+	got, err := conf.Environments[0].GetEnvVars(wd, deprecations.New(false))
 	assert.Nil(t, got)
 	assert.EqualError(t, err, "unable to find the envFrom file for nonprod at '/tmp/does-not-exist.yaml'")
 }
@@ -139,7 +140,7 @@ func Test_GetEnvVars4(t *testing.T) {
 	err := yaml.Unmarshal(data, &conf)
 	require.NoError(t, err)
 
-	got, err := conf.Environments[0].GetEnvVars(wd)
+	got, err := conf.Environments[0].GetEnvVars(wd, deprecations.New(false))
 	assert.Nil(t, got)
 	assert.EqualError(t, err, "unable to read the envFrom file for nonprod at 'file.yaml': cannot read")
 }
@@ -157,9 +158,27 @@ func Test_GetEnvVars5(t *testing.T) {
 	err = yaml.Unmarshal(data, &conf)
 	require.NoError(t, err)
 
-	got, err := conf.Environments[0].GetEnvVars(wd)
+	got, err := conf.Environments[0].GetEnvVars(wd, deprecations.New(false))
 	assert.Nil(t, got)
 	assert.EqualError(t, err, "unable to parse the envFrom file for nonprod at '/app/tests/samples/badsyntax.yaml': error converting YAML to JSON: yaml: line 3: found unexpected end of stream")
+}
+
+// GetEnvVars Ensure we return a deprecation from envFrom
+func Test_GetEnvVars6(t *testing.T) {
+
+	wd, err := internal.NewWorkingDirectory("/app/tests/samples")
+	require.NoError(t, err)
+
+	var conf Config
+	data := []byte(`environments:
+  - name: "nonprod"
+    envFrom: "envvars.yaml"`)
+	err = yaml.Unmarshal(data, &conf)
+	require.NoError(t, err)
+
+	got, err := conf.Environments[0].GetEnvVars(wd, deprecations.New(true))
+	assert.Nil(t, got)
+	assert.EqualError(t, err, "Using envFrom for default environment variables has been replaced with defaultEnvVarsFile")
 }
 
 // PerEnvironment Ensure we can get a value for a specific environment

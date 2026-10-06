@@ -2,15 +2,16 @@ package manifesting
 
 import (
 	"github.com/estratocloud/manifesting/internal"
+	"github.com/estratocloud/manifesting/internal/deprecations"
 	"github.com/estratocloud/manifesting/manifesting/config"
 	"github.com/estratocloud/manifesting/manifesting/generation"
 	"github.com/estratocloud/manifesting/manifesting/kubernetes"
 	"github.com/estratocloud/manifesting/manifesting/templates"
 )
 
-func GenerateManifest(environment *config.Environment, conf *config.Config, gd internal.PathInterface, wd internal.WorkingDirectoryInterface) error {
+func GenerateManifest(environment *config.Environment, conf *config.Config, gd internal.PathInterface, wd internal.WorkingDirectoryInterface, d *deprecations.Checker) error {
 
-	envvars, err := environment.GetEnvVars(wd)
+	envvars, err := environment.GetEnvVars(wd, d)
 	if err != nil {
 		return err
 	}
