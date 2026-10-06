@@ -1,10 +1,10 @@
 environments:
   - name: "production"
     output: ".generated/production.yaml"
-    envFrom: "envvars/production.yaml"
+    defaultEnvVarsFile: "envvars/production.yaml"
   - name: "nonprod"
     output: ".generated/nonprod.yaml"
-    envFrom: "envvars/nonprod.yaml"
+    defaultEnvVarsFile: "envvars/nonprod.yaml"
 
 vars:
   Priority: "first"
