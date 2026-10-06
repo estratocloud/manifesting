@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.4.0 - 2026-10-06
+
+### Added
+
+* Added new resource.envFrom functionality to setup external secret stores. (#53)
+* A new `--fail-on-deprecations` to stop the program when any deprecations are encountered. (#54)
+
+### Changed
+
+* Replace the environments.envFrom option with defaultEnvVarsFile (#56)
+
+--------
+
 ## v0.3.0 - 2026-08-10
 
 ### Added
