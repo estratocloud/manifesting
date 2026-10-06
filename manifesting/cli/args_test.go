@@ -69,3 +69,22 @@ func Test_GetArgs7(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, ".generated", args.generatedDirectory.GetPath())
 }
+
+// GetArgs Ensure it doesn't error on deprecations by default
+func Test_GetArgs8(t *testing.T) {
+	args, err := GetArgs([]string{
+		"--working-dir=/app/tests/samples/config",
+	})
+	require.NoError(t, err)
+	assert.Equal(t, false, args.deprecations.WillFail())
+}
+
+// GetArgs Ensure wecan set switch on failures for deprecations
+func Test_GetArgs9(t *testing.T) {
+	args, err := GetArgs([]string{
+		"--working-dir=/app/tests/samples/config",
+		"--fail-on-deprecations",
+	})
+	require.NoError(t, err)
+	assert.Equal(t, true, args.deprecations.WillFail())
+}
