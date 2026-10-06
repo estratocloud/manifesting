@@ -26,4 +26,4 @@ coverage:
 	docker exec -ti manifesting go test ./... -coverprofile=tests/coverage.txt
 	docker exec -ti manifesting go tool cover -html=tests/coverage.txt -o=tests/coverage.html
 	sudo chown $$USER tests/coverage.html
-	firefox tests/coverage.html
+	xdg-open tests/coverage.html
