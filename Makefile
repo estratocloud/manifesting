@@ -1,4 +1,4 @@
-go ?= 1.24
+go ?= 1.25
 
 .PHONY: up build run test coverage
 
