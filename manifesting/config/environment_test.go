@@ -63,7 +63,7 @@ func Test_GetOutputPath3(t *testing.T) {
 	assert.Equal(t, "/tmp/nonprod.yaml", got)
 }
 
-// GetEnvVars Ensure we get an empty map if there is no envFrom defined
+// GetEnvVars Ensure we can read the envvars file
 func Test_GetEnvVars1(t *testing.T) {
 
 	wd, err := internal.NewWorkingDirectory("/app/tests/samples")
@@ -72,7 +72,7 @@ func Test_GetEnvVars1(t *testing.T) {
 	var conf Config
 	data := []byte(`environments:
   - name: "nonprod"
-    envFrom: "envvars.yaml"`)
+    defaultEnvVarsFile: "envvars.yaml"`)
 	err = yaml.Unmarshal(data, &conf)
 	require.NoError(t, err)
 
@@ -84,7 +84,7 @@ func Test_GetEnvVars1(t *testing.T) {
 	}, got)
 }
 
-// GetEnvVars Ensure we get an empty map if there is no envFrom defined
+// GetEnvVars Ensure we get an empty map if there is no file defined
 func Test_GetEnvVars2(t *testing.T) {
 
 	wd, err := internal.NewWorkingDirectory("/tmp")
@@ -110,13 +110,13 @@ func Test_GetEnvVars3(t *testing.T) {
 	var conf Config
 	data := []byte(`environments:
   - name: "nonprod"
-    envFrom: "does-not-exist.yaml"`)
+    defaultEnvVarsFile: "does-not-exist.yaml"`)
 	err = yaml.Unmarshal(data, &conf)
 	require.NoError(t, err)
 
 	got, err := conf.Environments[0].GetEnvVars(wd, deprecations.New(false))
 	assert.Nil(t, got)
-	assert.EqualError(t, err, "unable to find the envFrom file for nonprod at '/tmp/does-not-exist.yaml'")
+	assert.EqualError(t, err, "unable to find the defaultEnvVarsFile file for nonprod at '/tmp/does-not-exist.yaml'")
 }
 
 // GetEnvVars Ensure we pass along errors from ReadFile
@@ -136,13 +136,13 @@ func Test_GetEnvVars4(t *testing.T) {
 	var conf Config
 	data := []byte(`environments:
   - name: "nonprod"
-    envFrom: "file.yaml"`)
+    defaultEnvVarsFile: "file.yaml"`)
 	err := yaml.Unmarshal(data, &conf)
 	require.NoError(t, err)
 
 	got, err := conf.Environments[0].GetEnvVars(wd, deprecations.New(false))
 	assert.Nil(t, got)
-	assert.EqualError(t, err, "unable to read the envFrom file for nonprod at 'file.yaml': cannot read")
+	assert.EqualError(t, err, "unable to read the defaultEnvVarsFile file for nonprod at 'file.yaml': cannot read")
 }
 
 // GetEnvVars Ensure we return an error if we can't parse the envvars file
@@ -154,31 +154,13 @@ func Test_GetEnvVars5(t *testing.T) {
 	var conf Config
 	data := []byte(`environments:
   - name: "nonprod"
-    envFrom: "badsyntax.yaml"`)
+    defaultEnvVarsFile: "badsyntax.yaml"`)
 	err = yaml.Unmarshal(data, &conf)
 	require.NoError(t, err)
 
 	got, err := conf.Environments[0].GetEnvVars(wd, deprecations.New(false))
 	assert.Nil(t, got)
-	assert.EqualError(t, err, "unable to parse the envFrom file for nonprod at '/app/tests/samples/badsyntax.yaml': error converting YAML to JSON: yaml: line 3: found unexpected end of stream")
-}
-
-// GetEnvVars Ensure we return a deprecation from envFrom
-func Test_GetEnvVars6(t *testing.T) {
-
-	wd, err := internal.NewWorkingDirectory("/app/tests/samples")
-	require.NoError(t, err)
-
-	var conf Config
-	data := []byte(`environments:
-  - name: "nonprod"
-    envFrom: "envvars.yaml"`)
-	err = yaml.Unmarshal(data, &conf)
-	require.NoError(t, err)
-
-	got, err := conf.Environments[0].GetEnvVars(wd, deprecations.New(true))
-	assert.Nil(t, got)
-	assert.EqualError(t, err, "Using envFrom for default environment variables has been replaced with defaultEnvVarsFile")
+	assert.EqualError(t, err, "unable to parse the defaultEnvVarsFile file for nonprod at '/app/tests/samples/badsyntax.yaml': error converting YAML to JSON: yaml: line 3: found unexpected end of stream")
 }
 
 // PerEnvironment Ensure we can get a value for a specific environment
