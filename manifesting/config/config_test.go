@@ -21,14 +21,14 @@ func Test_Unmarshal1(t *testing.T) {
 	assert.Equal(t, Config{
 		Environments: []*Environment{
 			{
-				Name:    "production",
-				Output:  ".generated/production.yaml",
-				EnvFrom: "envvars/production.yaml",
+				Name:               "production",
+				Output:             ".generated/production.yaml",
+				DefaultEnvVarsFile: "envvars/production.yaml",
 			},
 			{
-				Name:    "nonprod",
-				Output:  ".generated/nonprod.yaml",
-				EnvFrom: "envvars/nonprod.yaml",
+				Name:               "nonprod",
+				Output:             ".generated/nonprod.yaml",
+				DefaultEnvVarsFile: "envvars/nonprod.yaml",
 			},
 		},
 		Vars: map[string]any{
