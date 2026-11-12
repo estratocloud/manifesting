@@ -1,0 +1,40 @@
+name: update-pull-requests
+
+on:
+  pull_request:
+    types: [auto_merge_enabled]
+  push:
+    branches:
+      - main
+
+jobs:
+  update-pull-requests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update Pull Requests
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ secrets.BOT_TOKEN }}
+          script: |
+            const repo = context.payload.repository
+            const pulls = await github.rest.pulls.list({
+              owner: repo.owner.login,
+              repo: repo.name,
+              state: "open",
+            })
+
+            // Just output errors, by default they throw and we don't want to
+            // report that a PR couldn't be updated as an error in this workflow.
+            github.hook.error("request", async (error, options) => console.error(error))
+
+            pulls.data.forEach(function(pr) {
+              console.log("Pull Request: #" + pr.number)
+              if (pr.auto_merge) {
+                console.log("\tupdating...")
+                github.rest.pulls.updateBranch({
+                  owner: repo.owner.login,
+                  repo: repo.name,
+                  pull_number: pr.number,
+                })
+              }
+            })
