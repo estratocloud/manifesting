@@ -9,7 +9,7 @@ import (
 	"github.com/estratocloud/manifesting/manifesting/templates"
 )
 
-func GenerateManifest(environment *config.Environment, conf *config.Config, gd internal.PathInterface, wd internal.WorkingDirectoryInterface, d *deprecations.Checker) error {
+func GenerateManifest(environment *config.Environment, conf *config.Config, gd internal.PathInterface, wd internal.WorkingDirectoryInterface, d *deprecations.Checker, cli map[string]any) error {
 
 	envvars, err := environment.GetEnvVars(wd, d)
 	if err != nil {
@@ -23,7 +23,7 @@ func GenerateManifest(environment *config.Environment, conf *config.Config, gd i
 			return err
 		}
 
-		vars, err := resource.GetVars(environment, conf)
+		vars, err := resource.GetVars(environment, conf, cli)
 		if err != nil {
 			return err
 		}

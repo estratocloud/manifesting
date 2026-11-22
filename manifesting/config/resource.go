@@ -18,7 +18,7 @@ type EnvFrom struct {
 	SecretProviderClass string `yaml:"secretProviderClass"`
 }
 
-func (r *Resource) GetVars(environment *Environment, config *Config) (map[string]any, error) {
+func (r *Resource) GetVars(environment *Environment, config *Config, cli map[string]any) (map[string]any, error) {
 
 	reserved := map[string]any{
 		"RESOURCE_NAME": r.Name,
@@ -30,6 +30,9 @@ func (r *Resource) GetVars(environment *Environment, config *Config) (map[string
 
 	// Populate any default vars from the main config file
 	maps.Copy(vars, config.Vars)
+
+	// If any command line variables have been provided then use them
+	maps.Copy(vars, cli)
 
 	// Override the defaults with any specific to this resource
 	maps.Copy(vars, r.Vars)

@@ -14,6 +14,7 @@ type Args struct {
 	generatedDirectory internal.PathInterface
 	workingDirectory   internal.WorkingDirectoryInterface
 	deprecations       *deprecations.Checker
+	variables          Variables
 }
 
 type inputArgs struct {
@@ -21,6 +22,7 @@ type inputArgs struct {
 	generatedDirectory string
 	workingDirectory   string
 	failOnDeprecations bool
+	variables          Variables
 }
 
 func GetArgs(argv []string) (*Args, error) {
@@ -43,6 +45,9 @@ func defineArgs(argv []string) *inputArgs {
 	workingDirectory := flags.String("working-dir", "", "Run as if manifesting was started in this path")
 	failOnDeprecations := flags.Bool("fail-on-deprecations", false, "Throw an error if any deprecated functionality is used")
 
+	var variables Variables
+	flags.Var(&variables, "var", "Set a default project variable (eg --var=Replicas=1)")
+
 	_ = flags.Parse(argv)
 
 	return &inputArgs{
@@ -50,6 +55,7 @@ func defineArgs(argv []string) *inputArgs {
 		generatedDirectory: *generatedDirectory,
 		workingDirectory:   *workingDirectory,
 		failOnDeprecations: *failOnDeprecations,
+		variables:          variables,
 	}
 }
 
@@ -83,6 +89,8 @@ func validateArgs(input *inputArgs) (*Args, error) {
 	args.generatedDirectory = args.workingDirectory.NewPath(input.generatedDirectory)
 
 	args.deprecations = deprecations.New(input.failOnDeprecations)
+
+	args.variables = input.variables
 
 	return args, nil
 }
