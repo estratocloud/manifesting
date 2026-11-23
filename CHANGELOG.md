@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.5.0 - 2026-11-23
+
+### Added
+
+* A new `--var` option to override the default project variables (#67)
+
+### Changed
+
+* Removed the deprecated environments.envFrom option (#60)
+* Added support for Go 1.27 (#58)
+* Dropped support for Go 1.24 (#61)
+
+--------
+
 ## v0.4.0 - 2026-10-06
 
 ### Added
